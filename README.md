@@ -1,2 +1,2 @@
-# Audio Transfer
-Project to transfer audio from one style to another.
+# ImageSynth
+Various attempts to create images using various deep generative models.
