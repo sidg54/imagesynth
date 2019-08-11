@@ -11,5 +11,8 @@
     "image_size": 64,
     "num_layers": 0,
     "learning_rate": 1e-3,
-    "beta1": 0.5
+    "beta1": 0.5,
+    "seed": 9999,
+    "shuffle": 1,
+    "ngpu": 0
 }

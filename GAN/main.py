@@ -46,6 +46,18 @@ class GAN:
 
         self.loader = Loader(config)
     
+    def get_dataloaders(self):
+        '''
+        Retrieves the dataloaders which are loaded by the Loader class.
+
+        Returns
+        -------
+            tuple : (array_like, array_like)
+                Training dataloader, testing dataloader.
+        '''
+        train_loader, test_loader = self.loader.get_dataloaders()
+        return train_loader, test_loader
+    
     def train_one_epoch(self):
         '''
         Run a single training loop.
