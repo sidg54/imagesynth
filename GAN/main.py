@@ -24,6 +24,11 @@ class GAN:
     def __init__(self, config):
         '''
         Initializes an instance of the GAN class.
+
+        Parameters
+        ----------
+            config : obj
+                Configuration object with information needed to load data and train the network.
         '''
         self.config = config
 
