@@ -9,6 +9,8 @@ import torch
 import torchvision
 import torch.nn as nn
 import torch.optim as optim
+from torch.autograd import Variable
+from torch.backends import cudnn
 
 # internal imports
 from generator import Generator
@@ -34,41 +36,64 @@ class GAN:
 
         self.batch_size = self.config.batch_size
         self.learning_rate = self.config.learning_rate
+        self.beta1 = self.config.beta1
+        self.beta2 = self.config.beta2
         self.num_epochs = self.config.num_epochs
         self.input_size = self.config.input_size
         self.num_layers = self.config.num_layers
+        self.num_G_features = self.config.num_G_features
+        self.num_D_features = self.config.num_D_features
         
         self.G = Generator(config)
         self.D = Discriminator(config)
 
-        self.G_optim = optim.SGD(lr=self.learning_rate)
-        self.D_optim = optim.SGD(lr=self.learning_rate)
+        self.G_optim = optim.SGD(
+            self.G.parameters(),
+            lr=self.learning_rate,
+            betas=(self.beta1, self.beta2)
+        )
+        self.D_optim = optim.SGD(
+            self.D.parameters(),
+            lr=self.learning_rate,
+            betas=(self.beta1, self.beta2)
+        )
+
+        self.loss = nn.BCELoss()
+
+        self.real_label = 1
+        self.fake_label = 0
+
+        self.fixed_noise = Variable(torch.randn(self.batch_size, self.num_G_features))
 
         self.loader = Loader(config)
-    
-    def get_dataloaders(self):
-        '''
-        Retrieves the dataloaders which are loaded by the Loader class.
-
-        Returns
-        -------
-            tuple : (array_like, array_like)
-                Training dataloader, testing dataloader.
-        '''
-        train_loader, test_loader = self.loader.get_dataloaders()
-        return train_loader, test_loader
+        self.train_loader, self.test_loader = self.loader.get_loaders()
     
     def train_one_epoch(self):
         '''
         Run a single training loop.
         '''
-        pass
+        self.G.train()
+        self.D.train()
+        for batch_idx, (data, target) in enumerate(self.train_loader):
+            self.D_optim.zero_grad()
+            output = self.D(data)
 
-    def train(self):
+    def test_one_epoch(self):
         '''
-        Run training.
+        Run single testing loop.
         '''
-        pass
+        self.G.eval()
+        self.D.eval()
+            
+    def run(self):
+        '''
+        Run training and testing loops.
+        '''
+        train_loss = []
+        test_loss = []
+        for epoch in range(self.num_epochs):
+            self.train()
+            self.test()
 
     def finish_training(self):
         '''
