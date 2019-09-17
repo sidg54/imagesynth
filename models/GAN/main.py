@@ -1,4 +1,5 @@
 r'''
+GAN agent to generate numbers.
 '''
 # standard library imports
 from __future__ import absolute_import, print_function
