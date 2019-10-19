@@ -5,15 +5,16 @@ GAN agent to generate numbers.
 from __future__ import absolute_import, print_function
 import random
 import logging
+import time
 
 # third party imports
-import tqdm
 import torch
 import torchvision
 import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
 from torch.backends import cudnn
+from tqdm import tqdm
 
 # internal imports
 from generator import Generator
@@ -99,6 +100,9 @@ class GAN:
             device=self.device,
         )
         self.train_loader, self.test_loader = self.loader.load_data()
+
+        self.start_time = None
+        self.end_time = None
     
     def checkpoint(self, filename='checkpoint.pth'):
         '''
@@ -123,9 +127,7 @@ class GAN:
         torch.save(state, self.config.checkpoint_dir + filename)
     
     def train_one_epoch(self):
-        '''
-        Run a single training loop.
-        '''
+        ''' Run a single training loop. '''
         self.G.train()
         self.D.train()
         for batch_idx, (data, target) in tqdm(self.train_loader):
@@ -133,25 +135,29 @@ class GAN:
             output = self.D(data)
 
     def test_one_epoch(self):
-        '''
-        Run single testing loop.
-        '''
+        ''' Run single testing loop. '''
         self.G.eval()
         self.D.eval()
             
     def run(self):
-        '''
-        Run training and testing loops.
-        '''
+        ''' Run training and testing loops. '''
+        self.start_time = time.time()
         train_loss = []
         test_loss = []
-        for epoch in range(self.num_epochs):
+        for epoch in tqdm(range(self.num_epochs)):
             self.train_one_epoch()
             self.test_one_epoch()
+        self.end_time = time.time()
+        self.duration = self.end_time - self.start_time
 
     def finish_training(self):
         '''
         Finish training by graphing the network,
         saving G and D and show the results of training.
         '''
-        save_config_file(config_file=self.config)
+        new_config_info = {
+            'training_duration': self.duration,
+
+        }
+        self.config.update(new_config_info)
+        save_config_file(config=self.config)
