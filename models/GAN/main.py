@@ -18,8 +18,8 @@ from torch.backends import cudnn
 # internal imports
 from generator import Generator
 from discriminator import Discriminator
-from loader import Loader
-from utils.utils import show_gpu
+from dataloaders.mnist import MNISTDataLoader
+from utils.utils import show_gpu, save_config_file
 
 
 class GAN:
@@ -80,7 +80,7 @@ class GAN:
         
 
         self.G = Generator(config).to(self.device)
-        self.D = Discriminator(config)
+        self.D = Discriminator(config).to(self.device)
 
         self.G_optim = optim.SGD(
             self.G.parameters(),
@@ -93,8 +93,12 @@ class GAN:
             betas=(self.beta1, self.beta2)
         )
 
-        self.loader = Loader(config)
-        self.train_loader, self.test_loader = self.loader.get_loaders()
+        self.loader = MNISTDataLoader(
+            num_workers=self.config.num_workers,
+            batch_size=self.config.batch_size,
+            device=self.device,
+        )
+        self.train_loader, self.test_loader = self.loader.load_data()
     
     def checkpoint(self, filename='checkpoint.pth'):
         '''
@@ -142,12 +146,12 @@ class GAN:
         train_loss = []
         test_loss = []
         for epoch in range(self.num_epochs):
-            self.train()
-            self.test()
+            self.train_one_epoch()
+            self.test_one_epoch()
 
     def finish_training(self):
         '''
         Finish training by graphing the network,
         saving G and D and show the results of training.
         '''
-        pass
+        save_config_file(config_file=self.config)

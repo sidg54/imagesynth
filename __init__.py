@@ -1,1 +1,1 @@
-author = ['Siddarth', 'Ganguri']
+author = ['Ganguri']
