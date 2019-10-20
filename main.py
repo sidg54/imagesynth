@@ -14,6 +14,7 @@ from termcolor import colored, cprint
 from models import *
 from utils.config import process_config_file
 from utils.custom_parser import CustomParser
+from models.gan import *
 
 
 def main():
@@ -23,10 +24,8 @@ def main():
     '''
     # run with python 3
     if version_info[0] < 3:
-        raise Exception(
-            colored('ERROR :: ', 'red') 
-            + 'Running with Python 2, please retry with Python 3'
-        )
+        colored('ERROR :: ', 'red')
+        + 'Running with Python 2, please retry with Python 3'
     
     parser = CustomParser()
     parser.add_argument(
@@ -40,13 +39,13 @@ def main():
     config_file = getcwd() + '/configs/' + args.config + '.yml'
     config = process_config_file(config_file)
 
-    try:
-        model_file = globals()[config.model]
-        model = model_file(config)
-        model.run()
-        model.finalize()
-    except Exception as e:
-        raise Exception('Could not run selected model')
+    # try:
+    model_file = globals()[config.model_name]
+    model = model_file(config)
+    model.run()
+    model.finalize()
+    # except Exception as e:
+    #     raise Exception('Could not run selected model')
 
 
 if __name__ == '__main__':
