@@ -1,5 +1,5 @@
 # standard library imports
-from os import dirname, path, listdir
+from os import listdir, path
 from sys import modules
 
 path = path.dirname(path.abspath(__file__))

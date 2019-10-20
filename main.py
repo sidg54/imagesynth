@@ -4,7 +4,7 @@ To run:
     `main.py --config <config_file_name>`
 '''
 # standard library imports
-from os import get_cwd
+from os import getcwd
 from sys import version_info
 
 # third party imports
@@ -37,7 +37,7 @@ def main():
     )
 
     args = parser.parse_args()
-    config_file = get_cwd() + '/config/' + args.config
+    config_file = getcwd() + '/configs/' + args.config + '.yml'
     config = process_config_file(config_file)
 
     try:
@@ -46,10 +46,7 @@ def main():
         model.run()
         model.finalize()
     except Exception as e:
-        raise Exception(
-            colored('ERROR :: ')
-            + 'Could not run selected model'
-        )
+        raise Exception('Could not run selected model')
 
 
 if __name__ == '__main__':

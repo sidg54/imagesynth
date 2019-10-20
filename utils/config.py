@@ -47,7 +47,7 @@ def process_config_file(config_file):
     except AttributeError:
         print(
             colored('ERROR ::', 'red'),
-            ' : experiment_name not specified in YAML configuration file'
+            ' experiment_name not specified in YAML configuration file'
         )
         exit(-1)
 
