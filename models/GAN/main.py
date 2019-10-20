@@ -17,8 +17,8 @@ from torch.backends import cudnn
 from tqdm import tqdm
 
 # internal imports
-from gan.generator import Generator
-from gan.discriminator import Discriminator
+from .generator import Generator
+from .discriminator import Discriminator
 from dataloaders.mnist import MNISTDataLoader
 from utils.utils import show_gpu
 from utils.config import save_config_file
