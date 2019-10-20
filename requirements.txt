@@ -9,4 +9,6 @@ future
 flask
 Redis
 tqdm
+termcolor
+easydict
 pyyaml

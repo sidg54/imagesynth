@@ -17,10 +17,11 @@ from torch.backends import cudnn
 from tqdm import tqdm
 
 # internal imports
-from generator import Generator
-from discriminator import Discriminator
+from gan.generator import Generator
+from gan.discriminator import Discriminator
 from dataloaders.mnist import MNISTDataLoader
-from utils.utils import show_gpu, save_config_file
+from utils.utils import show_gpu
+from utils.config import save_config_file
 
 
 class GAN:
@@ -160,4 +161,10 @@ class GAN:
 
         }
         self.config.update(new_config_info)
-        save_config_file(config=self.config)
+        save_config_file(
+            config=self.config,
+            seed=self.seed,
+            duration=self.duration,
+            start_time=self.start_time,
+            end_time=self.end_time
+        )
