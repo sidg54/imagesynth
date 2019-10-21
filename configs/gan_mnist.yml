@@ -1,7 +1,6 @@
 experiment_name: gan_mnist
 dataset_name: "MNIST"
 model_name: "GAN"
-dataroot: ""
 num_workers: 1
 batch_size: 128
 num_epochs: 4

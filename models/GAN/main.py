@@ -152,14 +152,13 @@ class GAN:
         for batch_idx, (data, target) in enumerate(self.train_loader):
             # send data and target tensors to device
             data, target = data.to(self.device), target.to(self.device)
-            print(data.size())
             ###############################################################
             # Update Discriminator to maximize log(D(x)) + log(1 - D(G(z)))
             ###############################################################
             # first, train with real
             # zero gradients and begin training
             self.D_optim.zero_grad()
-            label = torch.full((self.batch_size,), self.real_label, device=self.device)
+            label = torch.full((data.size(0),), self.real_label, device=self.device)
             # perform a single forward pass through D
             output = self.D(data).view(-1)
             errD_real = self.criterion(output, label)
@@ -170,14 +169,17 @@ class GAN:
             # train with fake
             noise = torch.randn(self.batch_size, self.z_size, 1, 1, device=self.device)
             fake = self.G(noise)
-            label.fill_(fake_label)
-            output = D(fake.detach()).view(-1)
+            label.fill_(self.fake_label)
+            output = self.D(fake.detach()).view(-1)
             errD_fake = self.criterion(output, label)
             errD_fake.backward()
             D_G_z1 = output.mean().item()
             errD = errD_real + errD_fake
             self.D_optim.step()
 
+            #######################################
+            # Update Generator to max log(D(G(z)))
+            #######################################
             self.G.zero_grad()
             label.fill_(real_label)
             output = D(fake).view(-1)
