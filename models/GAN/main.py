@@ -50,8 +50,9 @@ class GAN:
         self.num_layers = int(self.config.num_layers)
         self.num_G_features = int(self.config.num_G_features)
         self.num_D_features = int(self.config.num_D_features)
+        self.z_size = int(self.config.z_size)
 
-        self.loss = nn.BCELoss()
+        self.criterion = nn.BCELoss()
 
         self.real_label = 1
         self.fake_label = 0
@@ -141,7 +142,7 @@ class GAN:
             nn.init.normal_(net.weight.data, 1.0, 0.02)
             nn.init.constant_(net.bias.data, 0)
     
-    def train_one_epoch(self):
+    def train_one_epoch(self, epoch):
         ''' Run a single training loop. '''
         # set G and D to training so gradient updates occur
         self.G.train()
@@ -152,11 +153,47 @@ class GAN:
             # send data and target tensors to device
             data, target = data.to(self.device), target.to(self.device)
             print(data.size())
+            ###############################################################
+            # Update Discriminator to maximize log(D(x)) + log(1 - D(G(z)))
+            ###############################################################
+            # first, train with real
             # zero gradients and begin training
             self.D_optim.zero_grad()
-            output = self.D(data)
+            label = torch.full((self.batch_size,), self.real_label, device=self.device)
+            # perform a single forward pass through D
+            output = self.D(data).view(-1)
+            errD_real = self.criterion(output, label)
+            # calculate gradients
+            errD_real.backward()
+            D_x = output.mean().item()
 
-    def test_one_epoch(self):
+            # train with fake
+            noise = torch.randn(self.batch_size, self.z_size, 1, 1, device=self.device)
+            fake = self.G(noise)
+            label.fill_(fake_label)
+            output = D(fake.detach()).view(-1)
+            errD_fake = self.criterion(output, label)
+            errD_fake.backward()
+            D_G_z1 = output.mean().item()
+            errD = errD_real + errD_fake
+            self.D_optim.step()
+
+            self.G.zero_grad()
+            label.fill_(real_label)
+            output = D(fake).view(-1)
+            errG = self.criterion(output, label)
+            errG.backward()
+            D_G_z2 = output.mean().item()
+            self.G_optim.step()
+
+            if epoch % 50 == 0:
+                print('=================================================================')
+                print(f'[{epoch}/{self.num_epochs}]\n[{batch_idx}/{len(self.train_loader)}]\n \
+                    Loss D: {errD.item()}\nLoss G: {errG.item()}\n \
+                        D(x): {D_x}\nD(G(z)): {D_G_z1} / {D_G_z2}')
+                print('=================================================================')
+
+    def test_one_epoch(self, epoch):
         ''' Run single testing loop. '''
         # set G and D to eval so gradients updates do not occur
         self.G.eval()
@@ -181,9 +218,9 @@ class GAN:
         # tqdm helps visualize loop progress
         for epoch in tqdm(range(self.num_epochs)):
             # run a single training epoch
-            self.train_one_epoch()
+            self.train_one_epoch(epoch)
             # run a single test epoch
-            self.test_one_epoch()
+            self.test_one_epoch(epoch)
         self.end_time = time.time()
         # calculate duration of training and set as class attribute
         self.duration = self.end_time - self.start_time
@@ -196,7 +233,7 @@ class GAN:
         # all info relevant from training placed in dict
         new_config_info = {
             'training_duration': self.duration,
-            'final_loss': self.loss,
+            'final_loss': self.criterion,
             'cuda_used': self.cuda,
             'seed_used': self.seed,
             'start_time': self.start_time,
