@@ -1,5 +1,5 @@
 r'''
-GAN agent to generate numbers.
+GAN agent to generate hand-written digits.
 '''
 # standard library imports
 from __future__ import absolute_import, print_function
