@@ -17,17 +17,15 @@ from torch.backends import cudnn
 from tqdm import tqdm
 
 # internal imports
-from gan.generator import Generator
-from gan.discriminator import Discriminator
+from .generator import Generator
+from .discriminator import Discriminator
 from dataloaders.mnist import MNISTDataLoader
 from utils.utils import show_gpu
-from utils.config import save_config_file
+from utils.config import log_config_file
 
 
 class GAN:
-    '''
-    Class to define a GAN architecture for image synthesis.
-    '''
+    ''' Class to define a GAN architecture for image synthesis. '''
 
     def __init__(self, config):
         '''
@@ -84,12 +82,12 @@ class GAN:
         self.G = Generator(config).to(self.device)
         self.D = Discriminator(config).to(self.device)
 
-        self.G_optim = optim.SGD(
+        self.G_optim = optim.Adam(
             self.G.parameters(),
             lr=self.learning_rate,
             betas=(self.beta1, self.beta2)
         )
-        self.D_optim = optim.SGD(
+        self.D_optim = optim.Adam(
             self.D.parameters(),
             lr=self.learning_rate,
             betas=(self.beta1, self.beta2)
@@ -161,7 +159,7 @@ class GAN:
 
         }
         self.config.update(new_config_info)
-        save_config_file(
+        log_config_file(
             config=self.config,
             seed=self.seed,
             duration=self.duration,

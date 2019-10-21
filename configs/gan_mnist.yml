@@ -6,6 +6,7 @@ num_workers: 1
 batch_size: 128
 num_epochs: 4
 num_channels: 3
+input_size: 
 z_size: 100
 num_G_features: 64
 num_D_features: 64

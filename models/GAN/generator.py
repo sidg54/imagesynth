@@ -20,6 +20,8 @@ class Generator(nn.Module):
             config : obj
                 Configuration object with information needed to load data and train the network.
         '''
+        super(Generator, self).__init__()
+
         self.config = config
         self.num_channels = self.config.num_channels
         self.z_size = self.config.z_size

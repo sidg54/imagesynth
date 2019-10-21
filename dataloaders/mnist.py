@@ -1,5 +1,5 @@
 r'''
-Loads 
+Loads MNIST data.
 '''
 # standard library imports
 from __future__ import absolute_import
@@ -10,11 +10,12 @@ import torchvision
 from torchvision import datasets, transforms
 
 # internal imports
-from dataloader import DataLoader
+from .dataloader import DataLoader
 
 
 class MNISTDataLoader(DataLoader):
     '''
+    Class to load MNIST data.
     '''
 
     def __init__(self, num_workers=4, batch_size=64, device='cpu'):
