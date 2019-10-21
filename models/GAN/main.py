@@ -47,7 +47,6 @@ class GAN:
         self.beta1 = float(self.config.beta1)
         self.beta2 = float(self.config.beta2)
         self.num_epochs = self.config.num_epochs
-        # self.input_size = int(self.config.input_size)
         self.num_layers = int(self.config.num_layers)
         self.num_G_features = int(self.config.num_G_features)
         self.num_D_features = int(self.config.num_D_features)
@@ -59,6 +58,7 @@ class GAN:
         self.fixed_noise = Variable(torch.randn(self.batch_size, self.num_G_features))
 
         self.cuda = torch.cuda.is_available() and self.config.cuda
+        self.ngpu = int(self.config.ngpu)
 
         if self.config.seed < 0 or not self.config.seed:
             self.seed = random.randint(1, 10000)
@@ -125,6 +125,22 @@ class GAN:
         }
         torch.save(state, self.config.checkpoint_dir + filename)
     
+    def init_weights(self, net):
+        '''
+        Initializes custom weights for G and D.
+
+        Arguments
+        ---------
+            net : obj
+                Network to initialize weights for.
+        '''
+        classname = net.__class__.__name__
+        if classname.find('Conv') != -1:
+            nn.init.normal_(net.weight.data, 0.0, 0.02)
+        elif classname.find('BatchNorm') != -1:
+            nn.init.normal_(net.weight.data, 1.0, 0.02)
+            nn.init.constant_(net.bias.data, 0)
+    
     def train_one_epoch(self):
         ''' Run a single training loop. '''
         # set G and D to training so gradient updates occur
@@ -133,6 +149,10 @@ class GAN:
 
         # training loop
         for batch_idx, (data, target) in enumerate(self.train_loader):
+            # send data and target tensors to device
+            data, target = data.to(self.device), target.to(self.device)
+            print(data.size())
+            # zero gradients and begin training
             self.D_optim.zero_grad()
             output = self.D(data)
 
@@ -145,6 +165,17 @@ class GAN:
     def run(self):
         ''' Run training and testing loops. '''
         self.start_time = time.time()
+
+        # is using multi-gpu, use DataParallel on G and D
+        if self.device.type == 'cuda' and self.ngpu > 1:
+            G = nn.DataParallel(G, list(range(self.ngpu)))
+            D = nn.DataParallel(D, list(range(self.ngpu)))
+
+        # apply weight initialization for G and D
+        G.apply(self.init_weights)
+        D.apply(self.init_weights)
+
+        # track train and test loss for graphing
         train_loss = []
         test_loss = []
         # tqdm helps visualize loop progress
@@ -171,6 +202,8 @@ class GAN:
             'start_time': self.start_time,
             'end_time': self.end_time,
             'duration': self.duration,
+            'real_label': self.real_label,
+            'fake_label': self.fake_label,
         }
         
         # update and log dict
