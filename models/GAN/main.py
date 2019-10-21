@@ -21,7 +21,7 @@ from .generator import Generator
 from .discriminator import Discriminator
 from dataloaders.mnist import MNISTDataLoader
 from utils.utils import show_gpu
-from utils.config import save_config_file
+from utils.config import log_config_file
 
 
 class GAN:
@@ -161,7 +161,7 @@ class GAN:
 
         }
         self.config.update(new_config_info)
-        save_config_file(
+        log_config_file(
             config=self.config,
             seed=self.seed,
             duration=self.duration,
