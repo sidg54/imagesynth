@@ -10,7 +10,7 @@ import torchvision
 from torchvision import datasets, transforms
 
 # internal imports
-from dataloader import DataLoader
+from .dataloader import DataLoader
 
 
 class MNISTDataLoader(DataLoader):
