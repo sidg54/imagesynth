@@ -25,9 +25,7 @@ from utils.config import log_config_file
 
 
 class GAN:
-    '''
-    Class to define a GAN architecture for image synthesis.
-    '''
+    ''' Class to define a GAN architecture for image synthesis. '''
 
     def __init__(self, config):
         '''
@@ -84,12 +82,12 @@ class GAN:
         self.G = Generator(config).to(self.device)
         self.D = Discriminator(config).to(self.device)
 
-        self.G_optim = optim.SGD(
+        self.G_optim = optim.Adam(
             self.G.parameters(),
             lr=self.learning_rate,
             betas=(self.beta1, self.beta2)
         )
-        self.D_optim = optim.SGD(
+        self.D_optim = optim.Adam(
             self.D.parameters(),
             lr=self.learning_rate,
             betas=(self.beta1, self.beta2)
