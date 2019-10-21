@@ -42,15 +42,15 @@ class GAN:
         self.cur_epoch = 0
         self.cur_iteration = 0
 
-        self.batch_size = self.config.batch_size
-        self.learning_rate = self.config.learning_rate
-        self.beta1 = self.config.beta1
-        self.beta2 = self.config.beta2
+        self.batch_size = int(self.config.batch_size)
+        self.learning_rate = float(self.config.learning_rate)
+        self.beta1 = float(self.config.beta1)
+        self.beta2 = float(self.config.beta2)
         self.num_epochs = self.config.num_epochs
-        self.input_size = self.config.input_size
-        self.num_layers = self.config.num_layers
-        self.num_G_features = self.config.num_G_features
-        self.num_D_features = self.config.num_D_features
+        # self.input_size = int(self.config.input_size)
+        self.num_layers = int(self.config.num_layers)
+        self.num_G_features = int(self.config.num_G_features)
+        self.num_D_features = int(self.config.num_D_features)
 
         self.loss = nn.BCELoss()
 
