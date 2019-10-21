@@ -205,12 +205,12 @@ class GAN:
 
         # is using multi-gpu, use DataParallel on G and D
         if self.device.type == 'cuda' and self.ngpu > 1:
-            G = nn.DataParallel(G, list(range(self.ngpu)))
-            D = nn.DataParallel(D, list(range(self.ngpu)))
+            self.G = nn.DataParallel(self.G, list(range(self.ngpu)))
+            self.D = nn.DataParallel(self.D, list(range(self.ngpu)))
 
         # apply weight initialization for G and D
-        G.apply(self.init_weights)
-        D.apply(self.init_weights)
+        self.G.apply(self.init_weights)
+        self.D.apply(self.init_weights)
 
         # track train and test loss for graphing
         train_loss = []
