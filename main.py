@@ -29,7 +29,7 @@ def main():
     
     parser = CustomParser()
     parser.add_argument(
-        '--config',
+        'config',
         metavar='config_yml_file',
         default='None',
         help='Name of the configuration file to use. Written in YAML.'
