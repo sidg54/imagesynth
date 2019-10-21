@@ -3,6 +3,7 @@ Loads MNIST data.
 '''
 # standard library imports
 from __future__ import absolute_import
+from os import path
 
 # third party imports
 import torch
@@ -32,12 +33,17 @@ class MNISTDataLoader(DataLoader):
                 Device to use for computation.
         '''
         super().__init__(num_workers, batch_size, device)
+
+        self.download = False
+        if path.exists('./data/MNIST') or path.exists('./MNIST'):
+            self.download = True
+
         
     def load_data(self):
         ''' Load the MNIST data. '''
         train_loader = torch.utils.data.DataLoader(
             datasets.MNIST(
-                root='.', train=True, download=True,
+                root='.', train=True, download=self.download,
                 transform=transforms.Compose([
                     transforms.ToTensor(),
                     transforms.Normalize((0.1307,), (0.3081,))
