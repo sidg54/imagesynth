@@ -77,7 +77,7 @@ def yaml_to_dict(yaml_file):
             exit(-1)
 
 
-def log_config_file(config, seed, duration, start_time, end_time):
+def log_config_file(config):
     '''
     Saves the results of the experiment and various other
     information regarding training to a file for future reference.
@@ -86,34 +86,23 @@ def log_config_file(config, seed, duration, start_time, end_time):
     ---------
         config : obj
             Configuration object used for training.
-        seed : int
-            Seed used in training.
-        duration : str
-            Duration of training.
-        start_time : str
-            Time of training start.
-        end_time :  str
-            Time of training end.
     '''
     save_dict = dict()
     save_dict.update(config)
 
-    saved_dict = saved_dict.update({
-        'start_time': start_time,
-        'end_time': end_time,
-        'duration': duration,
-        'used_seed': seed,
-    })
-
+    # set filepath information
     now = datetime.now()
     filepath = f'/experiment_logs/{config.experiment_name}_{now.strftime(DATE_FORMAT)}.yml'
-    saved_filepath = filepath
+    save_filepath = filepath
     filepath = os.getcwd() + filepath
+
+    # dump config file contents to filepath
     with open(filepath, 'w') as f:
-        safe_dump(saved_dict, f, default_flow_style=False)
+        safe_dump(save_dict, f, default_flow_style=False)
     
-    print(f'EXPERIMENT INFORMATION SAVED TO {saved_filepath}')
-    print(f'FILE CONTENTS:\n\t{print(saved_dict)}')
+    # output info to console
+    print(f'EXPERIMENT INFORMATION SAVED TO {save_filepath}')
+    print(f'FILE CONTENTS:\n\t{print(save_dict)}')
 
 
 def print_config(config):

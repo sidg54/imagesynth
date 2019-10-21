@@ -127,14 +127,18 @@ class GAN:
     
     def train_one_epoch(self):
         ''' Run a single training loop. '''
+        # set G and D to training so gradient updates occur
         self.G.train()
         self.D.train()
-        for batch_idx, (data, target) in tqdm(self.train_loader):
+
+        # training loop
+        for batch_idx, (data, target) in enumerate(self.train_loader):
             self.D_optim.zero_grad()
             output = self.D(data)
 
     def test_one_epoch(self):
         ''' Run single testing loop. '''
+        # set G and D to eval so gradients updates do not occur
         self.G.eval()
         self.D.eval()
             
@@ -143,10 +147,14 @@ class GAN:
         self.start_time = time.time()
         train_loss = []
         test_loss = []
+        # tqdm helps visualize loop progress
         for epoch in tqdm(range(self.num_epochs)):
+            # run a single training epoch
             self.train_one_epoch()
+            # run a single test epoch
             self.test_one_epoch()
         self.end_time = time.time()
+        # calculate duration of training and set as class attribute
         self.duration = self.end_time - self.start_time
 
     def finish_training(self):
@@ -154,15 +162,17 @@ class GAN:
         Finish training by graphing the network,
         saving G and D and show the results of training.
         '''
+        # all info relevant from training placed in dict
         new_config_info = {
             'training_duration': self.duration,
-
+            'final_loss': self.loss,
+            'cuda_used': self.cuda,
+            'seed_used': self.seed,
+            'start_time': self.start_time,
+            'end_time': self.end_time,
+            'duration': self.duration,
         }
+        
+        # update and log dict
         self.config.update(new_config_info)
-        log_config_file(
-            config=self.config,
-            seed=self.seed,
-            duration=self.duration,
-            start_time=self.start_time,
-            end_time=self.end_time
-        )
+        log_config_file(config=self.config)
