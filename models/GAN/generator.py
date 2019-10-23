@@ -28,23 +28,38 @@ class Generator(nn.Module):
         self.num_features = self.config.num_G_features
 
         self.main = nn.Sequential(
-            nn.ConvTranspose2d(self.z_size, self.num_features * 8, 4, 1, 0, bias=False),
+            nn.ConvTranspose2d(
+                in_channels=self.z_size, out_channels=self.num_features * 8, 
+                kernel_size=1, stride=1, padding=0, bias=False
+            ),
             nn.BatchNorm2d(self.num_features * 8),
             nn.ReLU(True),
 
-            nn.ConvTranspose2d(self.num_features * 8, self.num_features * 4, 4, 2, 1, bias=False),
+            nn.ConvTranspose2d(
+                in_channels=self.num_features * 8, out_channels=self.num_features * 4,
+                kernel_size=1, stride=1, padding=1, bias=False
+            ),
             nn.BatchNorm2d(self.num_features * 4),
             nn.ReLU(True),
 
-            nn.ConvTranspose2d(self.num_features * 4, self.num_features * 2, 4, 2, 1, bias=False),
+            nn.ConvTranspose2d(
+                in_channels=self.num_features * 4, out_channels=self.num_features * 2,
+                kernel_size=1, stride=1, padding=1, bias=False
+            ),
             nn.BatchNorm2d(self.num_features * 2),
             nn.ReLU(True),
 
-            nn.ConvTranspose2d(self.num_features * 2, self.num_features, 4, 2, 1, bias=False),
+            nn.ConvTranspose2d(
+                in_channels=self.num_features * 2, out_channels=self.num_features,
+                kernel_size=1, stride=1, padding=1, bias=False
+            ),
             nn.BatchNorm2d(self.num_features),
             nn.ReLU(True),
 
-            nn.ConvTranspose2d(self.num_features, self.num_channels, 4, 2, 1, bias=False),
+            nn.ConvTranspose2d(
+                in_channels=self.num_features, out_channels=self.num_channels,
+                kernel_size=1, stride=1, padding=1, bias=False
+            ),
             nn.Tanh()
         )
     

@@ -169,13 +169,19 @@ class GAN:
             # train with fake
             noise = torch.randn(self.batch_size, self.z_size, 1, 1, device=self.device)
             fake = self.G(noise)
+            # fill with fake
             label.fill_(self.fake_label)
             output = self.D(fake.detach()).view(-1)
+            print(label.size())
+            print(output.size())
+            # backwards to update gradient weights for fake data
             errD_fake = self.criterion(output, label)
             errD_fake.backward()
             D_G_z1 = output.mean().item()
+            # compute full error for D and take a single step w/ the optimizer
             errD = errD_real + errD_fake
             self.D_optim.step()
+
 
             #######################################
             # Update Generator to max log(D(G(z)))

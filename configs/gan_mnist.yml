@@ -9,6 +9,8 @@ z_size: 100
 num_G_features: 64
 num_D_features: 64
 image_size: 64
+kernel_size: 1
+stride: 2
 num_layers: 0
 learning_rate: 1e-3
 beta1: 0.5
