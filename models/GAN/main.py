@@ -172,8 +172,6 @@ class GAN:
             # fill with fake
             label.fill_(self.fake_label)
             output = self.D(fake.detach()).view(-1)
-            print(label.size())
-            print(output.size())
             # backwards to update gradient weights for fake data
             errD_fake = self.criterion(output, label)
             errD_fake.backward()

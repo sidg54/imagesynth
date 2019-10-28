@@ -1,7 +1,11 @@
 r'''
 Main module for running any model in the project.
+Must be run with Python3 since Python2 is losing
+support by January 1, 2020 (a few months after
+this is being written).
+
 To run: 
-    `main.py --config <config_file_name>`
+    `python3 main.py <config_file_name>`
 '''
 # standard library imports
 from os import getcwd
@@ -39,13 +43,13 @@ def main():
     config_file = getcwd() + '/configs/' + args.config + '.yml'
     config = process_config_file(config_file)
 
-    # try:
-    model_file = globals()[config.model_name]
-    model = model_file(config)
-    model.run()
-    model.finalize()
-    # except Exception as e:
-    #     raise Exception('Could not run selected model')
+    try:
+        model_file = globals()[config.model_name]
+        model = model_file(config)
+        model.run()
+        model.finalize()
+    except Exception as e:
+        raise Exception('Could not run selected model')
 
 
 if __name__ == '__main__':

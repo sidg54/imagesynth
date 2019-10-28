@@ -7,7 +7,7 @@ num_epochs: 4
 num_channels: 1
 z_size: 100
 num_G_features: 64
-num_D_features: 64
+num_D_features: 128
 image_size: 64
 kernel_size: 1
 stride: 2

@@ -4,6 +4,7 @@ tensorflow>=2.0.0-beta0
 numpy>=1.16
 matplotlib>=3.0.3
 seaborn>=0.8.1
+pandas
 python-dotenv
 future
 flask

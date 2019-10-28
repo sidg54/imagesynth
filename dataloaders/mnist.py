@@ -11,10 +11,10 @@ import torchvision
 from torchvision import datasets, transforms
 
 # internal imports
-from .dataloader import DataLoader
+from .dataset import BaseDataset
 
 
-class MNISTDataLoader(DataLoader):
+class MNISTDataset(BaseDataset):
     '''
     Class to load MNIST data.
     '''
