@@ -1,5 +1,5 @@
 # ImageSynth
-Various attempts to create images using different deep generative models.
+Various attempts to create images using different deep generative models. This project was mainly to learn the basics of creating APIs, UIs, and setting up monitoring for machine learning models. GANs seemed like a really cool (and challenging) architecture to work with so I thought seeing the results would be interesting.
 
 ## Approaches
 ### GAN
@@ -21,7 +21,9 @@ There are a few things that will need to be done to run an entirely new set of m
 #### New Dataset
 To create a new dataset, simply follow the steps below.
 1. Create a new file in the./dataloaders/ directory with the name of the .
-2. 
+2. Create a class with a relevant name concatenated with "DataLoader" at the end (see MNISTDataLoader). This class should extend the BaseDataLoader class which can be found in ./dataloaders/dataloader.py.
+3. Override the methods in this and load the data similar to in [./dataloaders/mnist.py](https://github.com/sidg54/imagesynth/blob/master/dataloaders/mnist.py)
+4. Ensure the new dataloader's load_data method returns both a train_loader and a test_loader.
 
 
 ## Future Work
@@ -29,3 +31,4 @@ To create a new dataset, simply follow the steps below.
 2. More datasets: ImageNet, Celeb-A
 3. New optimizers (mainly just for checking to see how they stack up against existing ones).
 4. Set the website up so users can interact with a UI to see how the models are generating things.
+5. Set up monitoring (Kubeflow maybe?)
