@@ -32,3 +32,4 @@ To create a new dataset, simply follow the steps below.
 3. New optimizers (mainly just for checking to see how they stack up against existing ones).
 4. Set the website up so users can interact with a UI to see how the models are generating things.
 5. Set up monitoring (Kubeflow maybe?)
+6. Use namedtensors.

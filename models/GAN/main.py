@@ -6,6 +6,8 @@ from __future__ import absolute_import, print_function
 import random
 import logging
 import time
+import math
+from copy import copy
 
 # third party imports
 import torch
@@ -52,6 +54,7 @@ class GAN:
         self.num_D_features = int(self.config.num_D_features)
         self.z_size = int(self.config.z_size)
 
+        # Use binary cross entropy loss for training.
         self.criterion = nn.BCELoss()
 
         self.real_label = 1
@@ -143,6 +146,13 @@ class GAN:
             nn.init.normal_(net.weight.data, 1.0, 0.02)
             nn.init.constant_(net.bias.data, 0)
     
+    def flip_labels(self):
+        ''' Flips the real and fake labels. '''
+        new_fake = copy(self.real_label)
+        new_real = copy(self.fake_label)
+        self.real_label = new_real
+        self.fake_label = new_fake
+    
     def train_one_epoch(self, epoch):
         ''' Run a single training loop. '''
         # set G and D to training so gradient updates occur
@@ -161,7 +171,7 @@ class GAN:
             self.D_optim.zero_grad()
             label = torch.full((data.size(0),), self.real_label, device=self.device)
             # perform a single forward pass through D
-            output = self.D(data).view(-1)
+            output = self.D(data)
             errD_real = self.criterion(output, label)
             # calculate gradients
             errD_real.backward()
@@ -172,12 +182,12 @@ class GAN:
             fake = self.G(noise)
             # fill with fake
             label.fill_(self.fake_label)
-            output = self.D(fake.detach()).view(-1)
+            output = self.D(fake.detach())
             # backwards to update gradient weights for fake data
             errD_fake = self.criterion(output, label)
             errD_fake.backward()
             D_G_z1 = output.mean().item()
-            # compute full error for D and take a single step w/ the optimizer
+            # compute full error for D and take a single step w/ the optimizer for D
             errD = errD_real + errD_fake
             self.D_optim.step()
 
@@ -185,11 +195,15 @@ class GAN:
             #######################################
             # Update Generator to max log(D(G(z)))
             #######################################
+            # zero gradients for G
             self.G.zero_grad()
             label.fill_(real_label)
-            output = D(fake).view(-1)
+            # retrieve D's output
+            output = D(fake)
+            # calculate loss and update gradients
             errG = self.criterion(output, label)
             errG.backward()
+            # compute error for G and take a single step w/ the optimizer for G
             D_G_z2 = output.mean().item()
             self.G_optim.step()
 
@@ -210,7 +224,7 @@ class GAN:
         ''' Run training and testing loops. '''
         self.start_time = time.time()
 
-        # is using multi-gpu, use DataParallel on G and D
+        # if using multi-gpu, use DataParallel on G and D
         if self.device.type == 'cuda' and self.ngpu > 1:
             self.G = nn.DataParallel(self.G, list(range(self.ngpu)))
             self.D = nn.DataParallel(self.D, list(range(self.ngpu)))
@@ -226,11 +240,36 @@ class GAN:
         for epoch in tqdm(range(self.num_epochs)):
             # run a single training epoch
             self.train_one_epoch(epoch)
+            
             # run a single test epoch
             self.test_one_epoch(epoch)
-        self.end_time = time.time()
+
+            # flip labels halfway through training.
+            if epoch % self.num_epochs == math.floor(self.num_epochs / 2):
+                self.flip_labels()
+
         # calculate duration of training and set as class attribute
+        self.end_time = time.time()
         self.duration = self.end_time - self.start_time
+    
+    def infer(self, x):
+        '''
+        Runs a single forward pass on the data to produce
+        some novel generative output.
+
+        Arguments
+        ---------
+            x : array_like
+                Input data.
+        
+        Returns
+        -------
+            array_like
+                Tensor of output data.
+        '''
+        self.G = self.G.eval()
+        inference = self.G(x)
+        return inference
 
     def finish_training(self):
         '''

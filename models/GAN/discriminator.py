@@ -7,7 +7,7 @@ import torch.nn as nn
 
 
 class Discriminator(nn.Module):
-    ''' Class to define a discriminator for a GAN architecture. '''
+    ''' Class to define a discriminator network for a GAN architecture. '''
 
     def __init__(self, config):
         '''
@@ -22,40 +22,45 @@ class Discriminator(nn.Module):
 
         self.config = config
         self.num_channels = self.config.num_channels
-        self.z_size = self.config.z_size
         self.num_features = self.config.num_D_features
-        
-        self.batch_size = self.config.batch_size
+        self.kernel_size = self.config.kernel_size
 
-        self.main = nn.Sequential(
-            nn.Conv2d(
-                in_channels=self.num_channels, out_channels=self.num_features,
-                kernel_size=4, stride=2, padding=1, bias=False
-            ),
-            nn.LeakyReLU(0.2, inplace=True),
-
-            nn.Conv2d(
-                in_channels=self.num_features, out_channels=self.num_features * 2,
-                kernel_size=4, stride=2, padding=1, bias=True
-            ),
-            nn.BatchNorm2d(self.num_features * 2),
-            nn.LeakyReLU(0.2, inplace=True),
-
-            nn.Conv2d(
-                in_channels=self.num_features * 2, out_channels=self.num_features * 4,
-                kernel_size=4, stride=2, padding=1, bias=False
-            ),
-            nn.BatchNorm2d(self.num_features * 4),
-            nn.LeakyReLU(0.2, inplace=True),
-
-            nn.Conv2d(
-                in_channels=self.num_features * 4, out_channels=self.num_features * 8,
-                kernel_size=1, stride=2, padding=1, bias=False
-            ),
-            nn.BatchNorm2d(self.num_features * 8),
-            nn.LeakyReLU(0.2, inplace=True),
+        # layers
+        self.conv1 = nn.Conv2d(
+            in_channels=self.num_channels, out_channels=self.num_features,
+            kernel_size=self.kernel_size,
+            stride=1, padding=1, bias=False
         )
-        self.out = nn.Linear(self.num_features * 8 * 4 * 4, 1)
+        self.lrelu1 = nn.LeakyReLU(0.2, inplace=True)
+
+        self.conv2 = nn.Conv2d(
+            in_channels=self.num_features, out_channels=self.num_features * 2,
+            kernel_size=self.kernel_size,
+            stride=1, padding=1, bias=False
+        )
+        self.bnorm1 = nn.BatchNorm2d(self.num_features * 2)
+        self.lrelu2 = nn.LeakyReLU(0.2, inplace=True)
+
+        self.conv3 = nn.Conv2d(
+            in_channels=self.num_features * 2, out_channels=self.num_features * 4,
+            kernel_size=self.kernel_size,
+            stride=1, padding=1, bias=False
+        )
+        self.bnorm2 = nn.BatchNorm2d(self.num_features * 4)
+        self.lrelu3 = nn.LeakyReLU(0.2, inplace=True)
+
+        self.conv4 = nn.Conv2d(
+            in_channels=self.num_features * 4, out_channels=self.num_features * 8,
+            kernel_size=self.kernel_size,
+            stride=1, padding=1, bias=False
+        )
+        self.bnorm3 = nn.BatchNorm2d(self.num_features * 8)
+        self.lrelu4 = nn.LeakyReLU(0.2, inplace=True)
+
+        self.conv5 = nn.Conv2d(
+            in_channels=self.num_features * 8, out_channels=1, kernel_size=self.kernel_size,
+            stride=1, padding=0, bias=False
+        )
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
@@ -72,8 +77,27 @@ class Discriminator(nn.Module):
             array_like
                 Transformed tensor output.
         '''
-        output = self.main(x)
-        output = self.out(output)
-        output = output.view(-1, self.num_features * 4 * 4)
+        output = self.conv1(x)
+        output = self.lrelu1(output)
+        print(output.size())
+
+        output = self.conv2(output)
+        output = self.bnorm1(output)
+        output = self.lrelu2(output)
+        print(output.size())
+
+        output = self.conv3(output)
+        output = self.bnorm2(output)
+        output = self.lrelu3(output)
+        print(output.size())
+
+        output = self.conv4(output)
+        output = self.bnorm3(output)
+        output = self.lrelu4(output)
+        print(output.size())
+        
+        output = self.conv5(output)
         output = self.sigmoid(output)
+        print(output.size())
+        output = output.view(-1)
         return output
