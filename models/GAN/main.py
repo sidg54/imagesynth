@@ -79,9 +79,10 @@ class GAN:
             torch.manual_seed(self.seed)
             self.logger.info('USING CPU FOR TRAINING')
         
-
-        self.G = Generator(config).to(self.device)
-        self.D = Discriminator(config).to(self.device)
+        G_name = globals()[config.G]
+        D_name = globals()[config.D]
+        self.G = G_name(config).to(self.device)
+        self.D = D_name(config).to(self.device)
 
         self.G_optim = optim.Adam(
             self.G.parameters(),

@@ -3,7 +3,7 @@ Loads MNIST data.
 '''
 # standard library imports
 from __future__ import absolute_import
-from os import path
+from os import path, getcwd
 
 # third party imports
 import torch
@@ -11,10 +11,10 @@ import torchvision
 from torchvision import datasets, transforms
 
 # internal imports
-from .dataset import BaseDataset
+from .dataloader import BaseDataLoader
 
 
-class MNISTDataset(BaseDataset):
+class MNISTDataLoader(BaseDataLoader):
     '''
     Class to load MNIST data.
     '''
@@ -35,15 +35,14 @@ class MNISTDataset(BaseDataset):
         super().__init__(num_workers, batch_size, device)
 
         self.download = False
-        if path.exists('./data/MNIST') or path.exists('./MNIST'):
+        if path.exists(f'{getcwd}/data/MNIST'):
             self.download = True
-
         
     def load_data(self):
         ''' Load the MNIST data. '''
         train_loader = torch.utils.data.DataLoader(
             datasets.MNIST(
-                root='.', train=True, download=self.download,
+                root=f'./data/', train=True, download=self.download,
                 transform=transforms.Compose([
                     transforms.ToTensor(),
                     transforms.Normalize((0.1307,), (0.3081,))
@@ -53,7 +52,7 @@ class MNISTDataset(BaseDataset):
         
         test_loader = torch.utils.data.DataLoader(
             datasets.MNIST(
-                root='.', train=False, transform=transforms.Compose([
+                root=f'./data/', train=False, transform=transforms.Compose([
                     transforms.ToTensor(),
                     transforms.Normalize((0.1307,), (0.3081,))
                 ])

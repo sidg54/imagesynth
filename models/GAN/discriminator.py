@@ -7,9 +7,7 @@ import torch.nn as nn
 
 
 class Discriminator(nn.Module):
-    '''
-    Class to define a discriminator for a GAN architecture.
-    '''
+    ''' Class to define a discriminator for a GAN architecture. '''
 
     def __init__(self, config):
         '''

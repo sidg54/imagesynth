@@ -49,7 +49,7 @@ def main():
         model.run()
         model.finalize()
     except Exception as e:
-        raise Exception('Could not run selected model')
+        raise e
 
 
 if __name__ == '__main__':

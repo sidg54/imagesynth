@@ -6,6 +6,8 @@ batch_size: 128
 num_epochs: 4
 num_channels: 1
 z_size: 100
+G: Generator
+D: Discriminator
 num_G_features: 64
 num_D_features: 128
 image_size: 64

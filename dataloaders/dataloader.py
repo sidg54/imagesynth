@@ -1,17 +1,11 @@
 r'''
 Module to hold base dataloading class.
 '''
-# standard library imports
-import os
-
 # third party imports
 import torch
-import numpy as np
-import pandas as pd
-from torch.utils.data import Dataset, DataLoader
 
 
-class BaseDataset(Dataset):
+class BaseDataLoader:
     '''
     Base dataloading class.
     '''
@@ -39,21 +33,7 @@ class BaseDataset(Dataset):
             self.device = torch.device(device)
         else:
             self.device = torch.device('cpu')
-        
-        self.batch_size = batch_size
-        self.num_workers = num_workers
-        
-        self.images = pd.read_csv(csv_file)
-    
-    def __len__(self):
-        return len(self.images)
-    
-    def __getitem__(self, idx):
-        if torch.is_tensor(idx):
-            idx = idx.tolist()
-        
-        img_name = os.path.join
-    
+
     def load_data(self):
         ''' Loads data. '''
         raise NotImplementedError
