@@ -20,10 +20,17 @@ There are a few things that will need to be done to run an entirely new set of m
 
 #### New Dataset
 To create a new dataset, simply follow the steps below.
-1. Create a new file in the./dataloaders/ directory with the name of the .
+1. Create a new file in the ./dataloaders/ directory with the name of the .
 2. Create a class with a relevant name concatenated with "DataLoader" at the end (see MNISTDataLoader). This class should extend the BaseDataLoader class which can be found in ./dataloaders/dataloader.py.
 3. Override the methods in this and load the data similar to in [./dataloaders/mnist.py](https://github.com/sidg54/imagesynth/blob/master/dataloaders/mnist.py)
 4. Ensure the new dataloader's load_data method returns both a train_loader and a test_loader.
+
+#### New Model
+To create a new model, just do the following.
+1. Create a new file (or files if you're creating a multi-model architecture like a GAN or seq2seq) in the ./models/gan/ directory (if it is a network that will be used in a GAN). Or, create a new directory in ./models/ with a name fitting the new architecture.
+2. Create a class (or classes) that extends nn.Module from Pytorch and implement the relevant class and create your architecture.
+3. If you created a new directory, create an __init__.py file and copy-paste the contents of [this file](https://github.com/sidg54/imagesynth/blob/master/utils/__init__.py) into it.
+4. If you created a new directory, create the architecture in another file called main.py in your new directory. Create a class similar to [this one for GANs](https://github.com/sidg54/imagesynth/blob/master/models/GAN/main.py).
 
 
 ## Future Work
