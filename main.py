@@ -8,11 +8,8 @@ To run:
     `python3 main.py <config_file_name>`
 '''
 # standard library imports
+import sys
 from os import getcwd
-from sys import version_info
-
-# third party imports
-from termcolor import colored, cprint
 
 # internal imports
 from models import *
@@ -27,9 +24,9 @@ def main():
     file and its associated model, dataset, etc.
     '''
     # run with python 3
-    if version_info[0] < 3:
-        colored('ERROR :: ', 'red')
-        + 'Running with Python 2, please retry with Python 3'
+    if sys.version_info[0] < 3:
+        print('ERROR :: Running with Python 2, please retry with Python 3')
+        sys.exit(1)
     
     parser = CustomParser()
     parser.add_argument(
