@@ -1,2 +1,2 @@
 # ImageSynth
-Various attempts to create images using various deep generative models.
+Various attempts to create images using different deep generative models.
