@@ -29,14 +29,14 @@ class Discriminator(nn.Module):
         self.conv1 = nn.Conv2d(
             in_channels=self.num_channels, out_channels=self.num_features,
             kernel_size=self.kernel_size,
-            stride=1, padding=1, bias=False
+            stride=1, padding=0, bias=False
         )
         self.lrelu1 = nn.LeakyReLU(0.2, inplace=True)
 
         self.conv2 = nn.Conv2d(
             in_channels=self.num_features, out_channels=self.num_features * 2,
             kernel_size=self.kernel_size,
-            stride=1, padding=1, bias=False
+            stride=1, padding=0, bias=False
         )
         self.bnorm1 = nn.BatchNorm2d(self.num_features * 2)
         self.lrelu2 = nn.LeakyReLU(0.2, inplace=True)
@@ -44,7 +44,7 @@ class Discriminator(nn.Module):
         self.conv3 = nn.Conv2d(
             in_channels=self.num_features * 2, out_channels=self.num_features * 4,
             kernel_size=self.kernel_size,
-            stride=1, padding=1, bias=False
+            stride=2, padding=0, bias=False
         )
         self.bnorm2 = nn.BatchNorm2d(self.num_features * 4)
         self.lrelu3 = nn.LeakyReLU(0.2, inplace=True)
@@ -52,14 +52,14 @@ class Discriminator(nn.Module):
         self.conv4 = nn.Conv2d(
             in_channels=self.num_features * 4, out_channels=self.num_features * 8,
             kernel_size=self.kernel_size,
-            stride=1, padding=1, bias=False
+            stride=2, padding=0, bias=False
         )
         self.bnorm3 = nn.BatchNorm2d(self.num_features * 8)
         self.lrelu4 = nn.LeakyReLU(0.2, inplace=True)
 
         self.conv5 = nn.Conv2d(
-            in_channels=self.num_features * 8, out_channels=1, kernel_size=self.kernel_size,
-            stride=1, padding=0, bias=False
+            in_channels=self.num_features * 8, out_channels=1, kernel_size=1,
+            stride=2, padding=0, bias=False
         )
         self.sigmoid = nn.Sigmoid()
 
@@ -79,25 +79,21 @@ class Discriminator(nn.Module):
         '''
         output = self.conv1(x)
         output = self.lrelu1(output)
-        print(output.size())
 
         output = self.conv2(output)
         output = self.bnorm1(output)
         output = self.lrelu2(output)
-        print(output.size())
 
         output = self.conv3(output)
         output = self.bnorm2(output)
         output = self.lrelu3(output)
-        print(output.size())
 
         output = self.conv4(output)
         output = self.bnorm3(output)
         output = self.lrelu4(output)
-        print(output.size())
         
         output = self.conv5(output)
         output = self.sigmoid(output)
-        print(output.size())
+        
         output = output.view(-1)
         return output
