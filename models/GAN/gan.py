@@ -23,7 +23,7 @@ from .generator import Generator
 from .discriminator import Discriminator
 from dataloaders.mnist import MNISTDataLoader
 from utils.utils import show_gpu
-from utils.config import log_config_file
+from utils.config import log_config_file, print_config
 
 
 class GAN:
@@ -291,4 +291,5 @@ class GAN:
         
         # update and log dict
         self.config.update(new_config_info)
+        print_config(config=self.config)
         log_config_file(config=self.config)

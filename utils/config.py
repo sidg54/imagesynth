@@ -84,7 +84,7 @@ def log_config_file(config):
 
     Arguments
     ---------
-        config : obj
+        config : dict
             Configuration object used for training.
     '''
     save_dict = dict()
