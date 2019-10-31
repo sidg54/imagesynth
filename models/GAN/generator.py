@@ -7,9 +7,7 @@ import torch.nn as nn
 
 
 class Generator(nn.Module):
-    '''
-    Class to define a generator network for a GAN architecture.
-    '''
+    ''' Class to define a generator network for a GAN architecture. '''
 
     def __init__(self, config):
         '''
@@ -102,3 +100,23 @@ class Generator(nn.Module):
         output = self.tanh(output)
 
         return output
+    
+    def infer(self, x):
+        '''
+        Performs a single forward pass, in eval mode, for inference.
+
+        Arguments
+        ---------
+            x : array_like
+                Tensor input for inference.
+
+        Returns
+        -------
+            array_like
+                Transformed tensor output.
+        '''
+        # set to eval
+        self.eval()
+
+        inference = self.forward(x)
+        return inference

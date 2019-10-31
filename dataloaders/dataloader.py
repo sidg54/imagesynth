@@ -6,9 +6,7 @@ import torch
 
 
 class BaseDataLoader:
-    '''
-    Base dataloading class.
-    '''
+    ''' Base dataloading class. '''
 
     def __init__(self, csv_file, root_dir, num_workers=4, batch_size=64, device='cpu', transform=None):
         '''
