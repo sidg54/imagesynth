@@ -245,7 +245,7 @@ class GAN:
             self.test_one_epoch(epoch)
 
             # flip labels halfway through training.
-            if epoch % self.num_epochs == math.floor(self.num_epochs / 2):
+            if epoch == math.floor(self.num_epochs / 2):
                 self.flip_labels()
 
         # calculate duration of training and set as class attribute
