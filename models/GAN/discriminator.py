@@ -16,16 +16,19 @@ class Discriminator(nn.Module):
         Parameters
         ----------
             config : obj
-                Configuration object with information needed to load data and train the network.
+                Configuration object with information
+                needed to train the network.
         '''
         super(Discriminator, self).__init__()
 
+        # Configuration
         self.config = config
         self.num_channels = self.config.num_channels
         self.num_features = self.config.num_D_features
         self.kernel_size = self.config.kernel_size
 
-        # layers
+        #### Layers
+        # First conv block
         self.conv1 = nn.Conv2d(
             in_channels=self.num_channels, out_channels=self.num_features,
             kernel_size=self.kernel_size,
@@ -33,6 +36,7 @@ class Discriminator(nn.Module):
         )
         self.lrelu1 = nn.LeakyReLU(0.2, inplace=True)
 
+        # Second conv block
         self.conv2 = nn.Conv2d(
             in_channels=self.num_features, out_channels=self.num_features * 2,
             kernel_size=self.kernel_size,
@@ -41,6 +45,7 @@ class Discriminator(nn.Module):
         self.bnorm1 = nn.BatchNorm2d(self.num_features * 2)
         self.lrelu2 = nn.LeakyReLU(0.2, inplace=True)
 
+        # Third conv block
         self.conv3 = nn.Conv2d(
             in_channels=self.num_features * 2, out_channels=self.num_features * 4,
             kernel_size=self.kernel_size,
@@ -49,6 +54,7 @@ class Discriminator(nn.Module):
         self.bnorm2 = nn.BatchNorm2d(self.num_features * 4)
         self.lrelu3 = nn.LeakyReLU(0.2, inplace=True)
 
+        # Fourth conv block
         self.conv4 = nn.Conv2d(
             in_channels=self.num_features * 4, out_channels=self.num_features * 8,
             kernel_size=self.kernel_size,
@@ -57,6 +63,7 @@ class Discriminator(nn.Module):
         self.bnorm3 = nn.BatchNorm2d(self.num_features * 8)
         self.lrelu4 = nn.LeakyReLU(0.2, inplace=True)
 
+        # Output block
         self.conv5 = nn.Conv2d(
             in_channels=self.num_features * 8, out_channels=1, kernel_size=1,
             stride=2, padding=0, bias=False
@@ -94,6 +101,6 @@ class Discriminator(nn.Module):
         
         output = self.conv5(output)
         output = self.sigmoid(output)
-        
+
         output = output.view(-1)
         return output
