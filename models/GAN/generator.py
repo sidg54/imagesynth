@@ -28,35 +28,40 @@ class Generator(nn.Module):
         self.z_size = self.config.z_size
         self.kernel_size = self.config.kernel_size
 
-        # layers
+        #### Layers
+        # First conv block
         self.convt1 = nn.ConvTranspose2d(
             in_channels=self.z_size, out_channels=self.num_features * 8, 
             kernel_size=self.kernel_size, stride=1, padding=0, bias=False
         )
-        self.bnorm1 = nn.BatchNorm2d(self.num_features * 8)
-        self.relu1 = nn.ReLU(True)
+        self.bnorm1 = nn.BatchNorm2d(num_features=self.num_features * 8)
+        self.relu1 = nn.ReLU(inplace=True)
 
+        # Second conv block
         self.convt2 = nn.ConvTranspose2d(
             in_channels=self.num_features * 8, out_channels=self.num_features * 4,
             kernel_size=self.kernel_size, stride=1, padding=1, bias=False
         )
-        self.bnorm2 = nn.BatchNorm2d(self.num_features * 4)
-        self.relu2 = nn.ReLU(True)
+        self.bnorm2 = nn.BatchNorm2d(num_features=self.num_features * 4)
+        self.relu2 = nn.ReLU(inplace=True)
 
+        # Third conv block
         self.convt3 = nn.ConvTranspose2d(
             in_channels=self.num_features * 4, out_channels=self.num_features * 2,
             kernel_size=self.kernel_size, stride=1, padding=1, bias=False
         )
-        self.bnorm3 = nn.BatchNorm2d(self.num_features * 2)
-        self.relu3 = nn.ReLU(True)
+        self.bnorm3 = nn.BatchNorm2d(num_features=self.num_features * 2)
+        self.relu3 = nn.ReLU(inplace=True)
 
+        # Fourth conv block
         self.convt4 = nn.ConvTranspose2d(
             in_channels=self.num_features * 2, out_channels=self.num_features,
             kernel_size=self.kernel_size, stride=1, padding=1, bias=False
         )
-        self.bnorm4 = nn.BatchNorm2d(self.num_features),
-        self.relu4 = nn.ReLU(True)
+        self.bnorm4 = nn.BatchNorm2d(num_features=self.num_features)
+        self.relu4 = nn.ReLU(inplace=True)
 
+        # Output block
         self.convt5 = nn.ConvTranspose2d(
             in_channels=self.num_features, out_channels=self.num_channels,
             kernel_size=self.kernel_size, stride=1, padding=1, bias=False
