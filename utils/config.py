@@ -66,7 +66,6 @@ def yaml_to_dict(yaml_file):
         config : obj (dict)
             Configuration object (a dict).
     '''
-    print(yaml_file)
     with open(yaml_file, 'r') as f:
         try:
             config_dict = safe_load(f)

@@ -1,5 +1,7 @@
 r'''
 Module to use already trained models for inference.
+This ensures no training can occur when inference
+is occurring in production environments.
 '''
 # standard library imports
 import os
@@ -21,6 +23,7 @@ class Infer:
                 Name of the model to be used for inference.
         '''
         self.model_name = model_name
+
         self.filepath = f'{os.getcwd()}/trained_models/{self.model_name}'
         if not (self.filepath[-3:] == '.pt' or self.filepath[-4:] == '.pth'):
             self.filepath = self.filepath + '.pt'
@@ -35,5 +38,10 @@ class Infer:
         ---------
             input : str
                 Input for inference.
+        
+        Returns
+        -------
+            tensor
+                Inference after being fed through the model.
         '''
         return self.model.infer(inp)

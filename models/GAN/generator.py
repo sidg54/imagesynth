@@ -29,7 +29,7 @@ class Generator(nn.Module):
         self.kernel_size = self.config.kernel_size
 
         #### Layers
-        # First conv block
+        # First deconv block
         self.convt1 = nn.ConvTranspose2d(
             in_channels=self.z_size, out_channels=self.num_features * 8, 
             kernel_size=self.kernel_size, stride=1, padding=0, bias=False
@@ -37,7 +37,7 @@ class Generator(nn.Module):
         self.bnorm1 = nn.BatchNorm2d(num_features=self.num_features * 8)
         self.relu1 = nn.ReLU(inplace=True)
 
-        # Second conv block
+        # Second deconv block
         self.convt2 = nn.ConvTranspose2d(
             in_channels=self.num_features * 8, out_channels=self.num_features * 4,
             kernel_size=self.kernel_size, stride=1, padding=1, bias=False
@@ -45,7 +45,7 @@ class Generator(nn.Module):
         self.bnorm2 = nn.BatchNorm2d(num_features=self.num_features * 4)
         self.relu2 = nn.ReLU(inplace=True)
 
-        # Third conv block
+        # Third deconv block
         self.convt3 = nn.ConvTranspose2d(
             in_channels=self.num_features * 4, out_channels=self.num_features * 2,
             kernel_size=self.kernel_size, stride=1, padding=1, bias=False
@@ -53,7 +53,7 @@ class Generator(nn.Module):
         self.bnorm3 = nn.BatchNorm2d(num_features=self.num_features * 2)
         self.relu3 = nn.ReLU(inplace=True)
 
-        # Fourth conv block
+        # Fourth deconv block
         self.convt4 = nn.ConvTranspose2d(
             in_channels=self.num_features * 2, out_channels=self.num_features,
             kernel_size=self.kernel_size, stride=1, padding=1, bias=False
