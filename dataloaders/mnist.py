@@ -24,11 +24,11 @@ class MNISTDataLoader(BaseDataLoader):
 
         Arguments
         ---------
-            num_workers : int   (default=4)
+            num_workers : (int, optional, default=4)
                 Number of workers for dataloading.
-            batch_size : int    (default=64)
+            batch_size : (int, optional, default=64)
                 Size of batch for loading.
-            device : str        (default="cpu")
+            device : (str, optional, default="cpu"
                 Device to use for computation.
         '''
         super().__init__(num_workers, batch_size, device)

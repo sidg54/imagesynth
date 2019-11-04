@@ -50,6 +50,7 @@ def show_gpu(device=1):
 
 def print_line():
     ''' Prints a line. For convenience in output. '''
+    print('=================================================')
 
 def display_status(epoch, num_epochs, batch, num_batches,
         G_err, D_err, D_x, D_G_z1, D_G_z2):
@@ -95,11 +96,11 @@ def display_state_dict(model=None, model_name='Model', optimizer=None):
 
     Arguments
     ---------
-        model : obj             (default=None)
+        model : (obj, default=None)
             The model whose state dict is to be printed.
-        model_name : string     (default='Model')
+        model_name : (string, default='Model')
             The title of the model.
-        optimizer : obj         (default=None)
+        optimizer : (obj, default=None)
             The optimizer whose state dict is to be printed.
     '''
     print('================================')

@@ -24,15 +24,15 @@ class RAdam(Optimizer):
         ---------
             params : (iterable)
                 Iterable of parameters to optimize or dicts defining parameter groups.
-            lr : (float, optional)      (default=1e-3)
+            lr : (float, optional, default=1e-3)
                 Learning rate
-            betas : (Tuple[float, float], optional)     (default=(0.9, 0.999))
+            betas : (Tuple[float, float], optional, default=(0.9, 0.999))
                 Coefficients used for computing running averages of gradient and its square.
-            eps : (float, optional)     (default=1e-8)
+            eps : (float, optional, default=1e-8)
                 Term added to the denominator to improve numerical stability.
-            weight_decay : (float, optional)        (default=0)
+            weight_decay : (float, optional, default=0)
                 Weight decay (L2 penalty)
-            ams_grad : (bool, optional)             (default=False)
+            ams_grad : (bool, optional, default=False)
         '''
         if not 0.0 <= lr:
             raise ValueError(f'Invalid learning rate: {lr}')
