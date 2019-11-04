@@ -7,7 +7,6 @@ from os import path, getcwd
 
 # third party imports
 import torch
-import torchvision
 from torchvision import datasets, transforms
 
 # internal imports
@@ -34,9 +33,9 @@ class MNISTDataLoader(BaseDataLoader):
         '''
         super().__init__(num_workers, batch_size, device)
 
-        self.download = False
+        self.download = True
         if path.exists(f'{getcwd}/data/MNIST'):
-            self.download = True
+            self.download = False
         
     def load_data(self):
         ''' Load the MNIST data. '''
