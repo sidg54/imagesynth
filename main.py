@@ -6,6 +6,11 @@ this is being written).
 
 To run: 
     `python3 main.py <config_file_name>`
+
+Author
+------
+Siddarth Ganguri
+October 2019
 '''
 # standard library imports
 import sys

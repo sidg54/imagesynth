@@ -1,5 +1,10 @@
 r'''
 Module to hold base dataloading class.
+
+Author
+------
+Siddarth Ganguri
+October 2019
 '''
 # third party imports
 import torch

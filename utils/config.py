@@ -1,6 +1,11 @@
 r'''
 Contains functions to deal with configuration 
 objects used for training.
+
+Author
+------
+Siddarth Ganguri
+October 2019
 '''
 # standard library imports
 from __future__ import print_function, absolute_import
@@ -16,7 +21,7 @@ from easydict import EasyDict as edict
 from utils.utils import print_line
 
 
-DATE_FORMAT = '%d-%m-%Y___%H-%M'
+DATE_FORMAT = '%d-%m-%Y__%H-%M'
 
 
 def process_config_file(config_file):

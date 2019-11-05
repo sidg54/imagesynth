@@ -4,6 +4,11 @@ General utility file to contain methods for tasks such as:
     - debugging memory
     - tracking training progress
     - etc.
+
+Author
+------
+Siddarth Ganguri
+October 2019
 '''
 # standard library imports
 from __future__ import absolute_import

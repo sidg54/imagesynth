@@ -2,6 +2,11 @@ r'''
 Module to use already trained models for inference.
 This ensures no training can occur when inference
 is occurring in production environments.
+
+Author
+------
+Siddarth Ganguri
+October 2019
 '''
 # standard library imports
 import os

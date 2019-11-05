@@ -1,5 +1,10 @@
 r'''
 GAN agent to generate hand-written digits.
+
+Author
+------
+Siddarth Ganguri
+October 2019
 '''
 # standard library imports
 from __future__ import absolute_import, print_function
@@ -11,7 +16,6 @@ from copy import copy
 
 # third party imports
 import torch
-import torchvision
 import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
@@ -43,6 +47,7 @@ class GAN:
 
         self.cur_epoch = 0
         self.cur_iteration = 0
+        self.print_every = self.config.print_every
 
         self.batch_size = int(self.config.batch_size)
         self.learning_rate = float(self.config.learning_rate)
@@ -76,11 +81,13 @@ class GAN:
             torch.cuda.set_device(self.config.device)
             torch.cuda.manual_seed_all(self.seed)
             self.logger.info('USING CUDA FOR TRAINING')
+            print('USING CUDA FOR TRAINING')
             show_gpu()
         else:
             self.device = torch.device('cpu')
             torch.manual_seed(self.seed)
             self.logger.info('USING CPU FOR TRAINING')
+            print('USING CPU FOR TRAINING')
         
         G_name = globals()[config.G]
         D_name = globals()[config.D]
@@ -153,41 +160,52 @@ class GAN:
         self.real_label = new_real
         self.fake_label = new_fake
     
-    def train_one_epoch(self, epoch):
-        ''' Run a single training loop. '''
-        # set G and D to training so gradient updates occur
+    def set_train(self):
+        ''' Sets the networks to training mode. '''
         self.G.train()
         self.D.train()
+    
+    def set_test(self):
+        ''' Sets the networks to testing mode. '''
+        self.G.eval()
+        self.D.eval()
+    
+    def train_one_epoch(self, epoch):
+        ''' Run a single training loop. '''
+        # Set G and D to training so gradient updates occur
+        self.set_train()
 
-        # training loop
+        # Training loop
         for batch_idx, (data, target) in enumerate(self.train_loader):
             # send data and target tensors to device
             data, target = data.to(self.device), target.to(self.device)
             ###############################################################
             # Update Discriminator to maximize log(D(x)) + log(1 - D(G(z)))
             ###############################################################
-            # first, train with real
-            # zero gradients and begin training
+            # First, train with real
+            # Zero gradients and begin training
             self.D_optim.zero_grad()
-            label = torch.full((data.size(0),), self.real_label, device=self.device)
-            # perform a single forward pass through D
+            label = torch.full( ( data.size(0), ), self.real_label, device=self.device)
+            # Perform a single forward pass through D
+            print(data.size())
             output = self.D(data)
             errD_real = self.criterion(output, label)
-            # calculate gradients
+            # Calculate gradients
             errD_real.backward()
             D_x = output.mean().item()
 
-            # train with fake
+            # Train with fake
             noise = torch.randn(self.batch_size, self.z_size, 1, 1, device=self.device)
             fake = self.G(noise)
-            # fill with fake
+            print(fake.size())
+            # Fill with fake
             label.fill_(self.fake_label)
             output = self.D(fake.detach())
-            # backwards to update gradient weights for fake data
+            # Backwards to update gradient weights for fake data
             errD_fake = self.criterion(output, label)
             errD_fake.backward()
             D_G_z1 = output.mean().item()
-            # compute full error for D and take a single step w/ the optimizer for D
+            # Compute full error for D and take a single step w/ the optimizer for D
             errD = errD_real + errD_fake
             self.D_optim.step()
 
@@ -195,19 +213,19 @@ class GAN:
             #######################################
             # Update Generator to max log(D(G(z)))
             #######################################
-            # zero gradients for G
+            # Zero gradients for G
             self.G.zero_grad()
             label.fill_(real_label)
-            # retrieve D's output
+            # Retrieve D's output
             output = D(fake)
-            # calculate loss and update gradients
+            # Calculate loss and update gradients
             errG = self.criterion(output, label)
             errG.backward()
-            # compute error for G and take a single step w/ the optimizer for G
+            # Compute error for G and take a single step w/ the optimizer for G
             D_G_z2 = output.mean().item()
             self.G_optim.step()
 
-            if epoch % 50 == 0:
+            if epoch % self.print_every == 0:
                 print('=================================================================')
                 print(f'[{epoch}/{self.num_epochs}]\n[{batch_idx}/{len(self.train_loader)}]\n \
                     Loss D: {errD.item()}\nLoss G: {errG.item()}\n \
@@ -215,10 +233,9 @@ class GAN:
                 print('=================================================================')
 
     def test_one_epoch(self, epoch):
-        ''' Run single testing loop. '''
-        # set G and D to eval so gradients updates do not occur
-        self.G.eval()
-        self.D.eval()
+        ''' Run a single testing loop. '''
+        # Set G and D to eval so gradients updates do not occur
+        self.set_test()
             
     def run(self):
         ''' Run training and testing loops. '''
@@ -267,7 +284,7 @@ class GAN:
             array_like
                 Tensor of output data.
         '''
-        self.G = self.G.eval()
+        self.set_test()
         inference = self.G(x)
         return inference
 

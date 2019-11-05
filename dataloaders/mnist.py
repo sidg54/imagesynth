@@ -1,5 +1,10 @@
 r'''
 Loads MNIST data.
+
+Author
+------
+Siddarth Ganguri
+October 2019
 '''
 # standard library imports
 from __future__ import absolute_import
