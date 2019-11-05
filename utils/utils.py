@@ -20,6 +20,8 @@ from datetime import datetime
 
 # third party imports
 import torch
+import torch.nn.functional as F
+import numpy as np
 import yaml
 import gpustat
 import matplotlib.pyplot as plt
@@ -128,3 +130,50 @@ def print_line(color=None):
         cprint(lines, color)
     else:
         print(lines)
+
+
+def imshow(img, one_channel=False):
+    '''
+    Shows a single image.
+
+    Arguments
+    ---------
+        img : array_like
+            Tensor of data to represent an image.
+        one_channel : (bool, optional, default=False)
+    '''
+    if one_channel:
+        img = img.mean(dim=0)
+    img = img / 2 + 0.5             # unnormalize the image
+    np_img = img.numpy()
+    if one_channel:
+        plt.imshow(np_img, cmap='Greys')
+    else:
+        plt.imshow(np.transpose(np_img, (1, 2, 0)))
+
+
+def images_to_probs(network, images):
+    '''
+    Generates predictions and corresponding probabilities
+    from trained a network and a list of images.
+    '''
+    output = network(images)
+
+    # convert output probabilities to images
+    _, preds_tensor = torch.max(output, 1)
+    preds = np.squeeze(preds_tensor.numpy())
+    return preds, [F.softmax(el, dim=0)[i].item() for i, el in zip(preds, output)]
+
+
+def plot_classes_preds(network, images, labels):
+    '''
+    '''
+    preds, probs = images_to_probs(network, images)
+    fig = plt.figure(figsize=(12, 48))
+    for idx in np.arange(4):
+        ax = fig.add_subplot(1, 4, idx+1, xticks=[], yticks=[])
+        imshow(images[idx], one_channel=True)
+        ax.set_title(f'{classes[preds[idx]]}, {probs[idx] * 100.0}\n \
+            (label: {classes[labels[idx]]})', color='green' if preds[idx]==labels[idx].item() else 'red')
+    
+    return fig

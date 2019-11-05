@@ -15,19 +15,26 @@ import math
 from copy import copy
 
 # third party imports
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torchvision
+import torchvision.utils as vutils
 from torch.autograd import Variable
 from torch.backends import cudnn
+from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
+from IPython.display import HTML
 
 # internal imports
 from .generator import Generator
 from .discriminator import Discriminator
 from dataloaders.mnist import MNISTDataLoader
 from utils.utils import show_gpu
-from utils.config import log_config_file, print_config
+from utils.config import log_config_file, print_config, imshow, plot_classes_preds, images_to_probs
 
 
 class GAN:
@@ -44,6 +51,7 @@ class GAN:
         '''
         self.config = config
         self.logger = logging.getLogger()
+        self.writer = SummaryWriter(f'experiment_logs/{self.config.experiment_name}')
 
         self.cur_epoch = 0
         self.cur_iteration = 0
@@ -112,6 +120,12 @@ class GAN:
         )
         self.train_loader, self.test_loader = self.loader.load_data()
 
+        # save image grid to SummaryWriter
+        dataiter = iter(self.train_loader)
+        images, labels = dataiter.next()
+        img_grid = torchvision.utils.make_grid(images)
+        self.writer.add_image('mnist_image_grid', img_grid)
+
         self.start_time = None
         self.end_time = None
     
@@ -176,7 +190,7 @@ class GAN:
         self.set_train()
 
         # Training loop
-        for batch_idx, (data, target) in enumerate(self.train_loader):
+        for batch_idx, (data, target) in enumerate(tqdm(self.train_loader)):
             # send data and target tensors to device
             data, target = data.to(self.device), target.to(self.device)
             ###############################################################
@@ -187,7 +201,6 @@ class GAN:
             self.D_optim.zero_grad()
             label = torch.full( ( data.size(0), ), self.real_label, device=self.device)
             # Perform a single forward pass through D
-            print(data.size())
             output = self.D(data)
             errD_real = self.criterion(output, label)
             # Calculate gradients
@@ -226,11 +239,29 @@ class GAN:
             self.G_optim.step()
 
             if epoch % self.print_every == 0:
+                # save to SummaryWriter
+                self.writer.add_scalar('G training loss',
+                    errG.item() / 1000, epoch * len(self.train_loader) + batch_idx)
+                self.writer.add_scalar('D training loss',
+                    errD.item() / 1000, epoch * len(self.train_loader) + batch_idx)
+
+                # print
                 print('=================================================================')
                 print(f'[{epoch}/{self.num_epochs}]\n[{batch_idx}/{len(self.train_loader)}]\n \
                     Loss D: {errD.item()}\nLoss G: {errG.item()}\n \
                         D(x): {D_x}\nD(G(z)): {D_G_z1} / {D_G_z2}')
                 print('=================================================================')
+            
+            # Save losses for later plotting and analysis
+            self.G_train_losses.append(errG.item())
+            self.D_train_losses.append(errD.item())
+
+            if self.cur_iteration % 500 == 0 or ((epoch == num_epochs - 1) and (batch_idx == len(self.train_loader)-1)):
+                with torch.no_grad():
+                    fake = self.G(self.fixed_noise).detach().cpu()
+                self.img_list.append(vutils.make_grid(fake, padding=2, normalize=True))
+
+            self.cur_iteration += 1
 
     def test_one_epoch(self, epoch):
         ''' Run a single testing loop. '''
@@ -243,21 +274,28 @@ class GAN:
 
         # if using multi-gpu, use DataParallel on G and D
         if self.device.type == 'cuda' and self.ngpu > 1:
-            self.G = nn.DataParallel(self.G, list(range(self.ngpu)))
-            self.D = nn.DataParallel(self.D, list(range(self.ngpu)))
+            device_ids = list(range(self.ngpu))
+            self.G = nn.DataParallel(self.G, device_ids=device_ids)
+            self.D = nn.DataParallel(self.D, device_ids=device_ids)
 
         # apply weight initialization for G and D
         self.G.apply(self.init_weights)
         self.D.apply(self.init_weights)
 
+        # track a list of images
+        self.img_list = []
+
         # track train and test loss for graphing
-        train_loss = []
-        test_loss = []
-        # tqdm helps visualize loop progress
-        for epoch in tqdm(range(self.num_epochs)):
+        self.G_train_losses = []
+        self.D_train_losses = []
+        self.G_test_losses = []
+        self.D_test_losses = []
+
+        # run the training loop, alternating between train and test
+        for epoch in range(self.num_epochs):
             # run a single training epoch
             self.train_one_epoch(epoch)
-            
+
             # run a single test epoch
             self.test_one_epoch(epoch)
 
@@ -310,3 +348,36 @@ class GAN:
         self.config.update(new_config_info)
         print_config(config=self.config)
         log_config_file(config=self.config)
+        self.writer.close()
+
+        # Plot training loss for G and D
+        plt.figure(figsize=(10,5))
+        plt.title('Generator and Discriminator Loss During Training')
+        plt.plot(self.G_train_losses, label='G')
+        plt.plot(self.D_train_losses, label='D')
+        plt.xlabel('Iterations')
+        plt.ylabel('Loss')
+        plt.legend()
+        plt.show()
+
+        # Visualizing the Generator's progress through training.
+        fig = plt.figure(figsize=(8,8))
+        plt.axis('off')
+        ims = [[plt.imshow(np.transpose(i, (1,2,0)), animated=True)] for i in img_list]
+        ani = animation.ArtistAnimation(fig, ims, interval=1000, repeat_delay=1000, blit=True)
+        HTML(ani.to_jshtml())
+
+        # Plot real images
+        real_batch = next(iter(self.train_loader))
+        plt.figure(figsize=(15,15))
+        plt.subplot(1,2,1)
+        plt.axis('off')
+        plt.title('Real Images')
+        plt.imshow(np.transpose(vutils.make_grid(real_batch[0].to(self.device)[:64], padding=5, normalize=True).cpu(), (1,2,0)))
+
+        # Plot Fake image generated during the last epoch
+        plt.subplot(1,2,2)
+        plt.axis('off')
+        plt.title('Fake Images')
+        plt.imshow(np.transpose(img_list[-1], (1,2,0)))
+        plt.show()

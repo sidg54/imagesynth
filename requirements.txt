@@ -1,4 +1,5 @@
 Flask
+IPython
 torch==1.2.0
 torchvision==0.4.0
 tensorflow>=2.0.0-beta0
