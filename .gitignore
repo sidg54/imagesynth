@@ -33,6 +33,7 @@ MANIFEST
 *.zip
 *.gz
 *.swp
+*.tfevents.*
 
 # Testing
 htmlcov/
