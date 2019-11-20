@@ -36,7 +36,7 @@ class Generator(nn.Module):
         self.z_size = self.config.z_size
         self.kernel_size = self.config.kernel_size
 
-        #### Layers
+        #### Layers d
         # First deconv block
         self.convt1 = nn.ConvTranspose2d(
             in_channels=self.z_size, out_channels=self.num_features * 8, 

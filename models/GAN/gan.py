@@ -1,5 +1,5 @@
 r'''
-GAN agent to generate hand-written digits.
+GAN agent to generate images.
 
 Author
 ------
@@ -30,6 +30,7 @@ from tqdm import tqdm
 from IPython.display import HTML
 
 # internal imports
+from  ..base_agent import Agent
 from .generator import Generator
 from .discriminator import Discriminator
 from dataloaders.mnist import MNISTDataLoader
@@ -37,42 +38,22 @@ from utils.utils import show_gpu, imshow, plot_classes_preds, images_to_probs
 from utils.config import log_config_file, print_config
 
 
-class GAN:
+class GAN(Agent):
     ''' Class to define a GAN architecture for image synthesis. '''
 
     def __init__(self, config):
         '''
         Initializes an instance of the GAN class.
 
-        Parameters
-        ----------
-            config : obj
+        Arguments
+        ---------
+            config : dict
                 Configuration object with information needed to load data and train the network.
         '''
-        self.config = config
-        self.logger = logging.getLogger()
-        self.writer = SummaryWriter(f'experiment_logs/{self.config.experiment_name}')
-
-        self.cur_epoch = 0
-        self.cur_iteration = 0
+        super(Agent, self).__init__(config)
 
         # below, we set a bunch of hyperparameters / class variables
         # and ensure they can be parsed to float or int (depending)
-        try:
-            self.print_every = int(self.config.print_every)
-        except ValueError:
-            raise ValueError('print_every in config cannot be parsed to int')
-
-        try:
-            self.batch_size = int(self.config.batch_size)
-        except ValueError:
-            raise ValueError('batch_size in config cannot be parsed to int')
-
-        try:
-            self.learning_rate = float(self.config.learning_rate)
-        except ValueError:
-            raise ValueError('learning_rate in config cannot be parsed to float')
-
         try:
             self.beta1 = float(self.config.beta1)
         except ValueError:
@@ -103,44 +84,12 @@ class GAN:
         except ValueError:
             raise ValueError('z_size in config cannot be parsed to int')
 
-        try:
-            self.num_epochs = int(self.config.num_epochs)
-        except ValueError:
-            raise ValueError('num_epochs in config cannot be parsed to int')
-
         # Use binary cross entropy loss for training.
         self.criterion = nn.BCELoss()
 
         self.real_label = 1
         self.fake_label = 0
         self.fixed_noise = Variable(torch.randn(self.batch_size, self.num_G_features))
-
-        self.cuda = torch.cuda.is_available() and self.config.cuda
-
-        try:
-            self.ngpu = int(self.config.ngpu)
-        except ValueError:
-            raise ValueError('ngpu in config cannot be parsed to int')
-
-        if self.config.seed < 0 or not self.config.seed:
-            self.seed = random.randint(1, 10000)
-        else:
-            self.seed = self.config.seed
-        self.logger.info('MANUAL SEED: ', self.seed)
-        random.seed(self.seed)
-
-        if self.cuda:
-            self.device = torch.device('cuda')
-            torch.cuda.set_device(self.config.device)
-            torch.cuda.manual_seed_all(self.seed)
-            self.logger.info('USING CUDA FOR TRAINING')
-            print('USING CUDA FOR TRAINING')
-            show_gpu()
-        else:
-            self.device = torch.device('cpu')
-            torch.manual_seed(self.seed)
-            self.logger.info('USING CPU FOR TRAINING')
-            print('USING CPU FOR TRAINING')
         
         G_name = globals()[config.G]
         D_name = globals()[config.D]
@@ -158,23 +107,11 @@ class GAN:
             betas=(self.beta1, self.beta2)
         )
 
-        self.loader = MNISTDataLoader(
-            num_workers=self.config.num_workers,
-            batch_size=self.config.batch_size,
-            device=self.device,
-        )
-        self.train_loader, self.test_loader = self.loader.load_data()
-
         # save image grid to SummaryWriter
         dataiter = iter(self.train_loader)
         images, labels = dataiter.next()
         img_grid = torchvision.utils.make_grid(images)
         self.writer.add_image('mnist_image_grid', img_grid)
-
-        # set start and end time to None when initializing the class
-        # this ensures calling the wrong method results in an error
-        self.start_time = None
-        self.end_time = None
     
     def checkpoint(self, filename='checkpoint.pth'):
         '''
@@ -270,7 +207,6 @@ class GAN:
             errD = errD_real + errD_fake
             self.D_optim.step()
 
-
             #######################################
             # Update Generator to max log(D(G(z)))
             #######################################
@@ -301,8 +237,8 @@ class GAN:
                 print('=================================================================')
             
             # Save losses for later plotting and analysis
-            self.G_train_losses.append(errG.item())
-            self.D_train_losses.append(errD.item())
+            self.hist['G_train_losses'].append(errG.item())
+            self.hist['D_train_losses'].append(errD.item())
 
             if self.cur_iteration % 500 == 0 or ((epoch == num_epochs - 1) and (batch_idx == len(self.train_loader)-1)):
                 with torch.no_grad():
@@ -334,10 +270,11 @@ class GAN:
         self.img_list = []
 
         # track train and test loss for graphing
-        self.G_train_losses = []
-        self.D_train_losses = []
-        self.G_test_losses  = []
-        self.D_test_losses  = []
+        self.hist = {}
+        self.hist['D_train_losses'] = []
+        self.hist['G_train_losses'] = []
+        self.hist['D_test_losses'] = []
+        self.hist['G_test_losses'] = []
 
         # run the training loop, alternating between train and test
         for epoch in range(self.num_epochs):
@@ -402,6 +339,7 @@ class GAN:
             'duration': self.duration,
             'real_label': self.real_label,
             'fake_label': self.fake_label,
+            'hist': self.hist
         }
         
         # update and log dict
@@ -413,8 +351,8 @@ class GAN:
         # Plot training loss for G and D
         plt.figure(figsize=(10,5))
         plt.title('Generator and Discriminator Loss During Training')
-        plt.plot(self.G_train_losses, label='G')
-        plt.plot(self.D_train_losses, label='D')
+        plt.plot(self.hist['G_train_losses'], label='G')
+        plt.plot(self.hist['D_train_losses'], label='D')
         plt.xlabel('Iterations')
         plt.ylabel('Loss')
         plt.legend()
