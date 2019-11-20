@@ -33,8 +33,8 @@ from IPython.display import HTML
 from .generator import Generator
 from .discriminator import Discriminator
 from dataloaders.mnist import MNISTDataLoader
-from utils.utils import show_gpu
-from utils.config import log_config_file, print_config, imshow, plot_classes_preds, images_to_probs
+from utils.utils import show_gpu, imshow, plot_classes_preds, images_to_probs
+from utils.config import log_config_file, print_config
 
 
 class GAN:
@@ -55,17 +55,58 @@ class GAN:
 
         self.cur_epoch = 0
         self.cur_iteration = 0
-        self.print_every = self.config.print_every
 
-        self.batch_size = int(self.config.batch_size)
-        self.learning_rate = float(self.config.learning_rate)
-        self.beta1 = float(self.config.beta1)
-        self.beta2 = float(self.config.beta2)
-        self.num_epochs = self.config.num_epochs
-        self.num_layers = int(self.config.num_layers)
-        self.num_G_features = int(self.config.num_G_features)
-        self.num_D_features = int(self.config.num_D_features)
-        self.z_size = int(self.config.z_size)
+        # below, we set a bunch of hyperparameters / class variables
+        # and ensure they can be parsed to float or int (depending)
+        try:
+            self.print_every = int(self.config.print_every)
+        except ValueError:
+            raise ValueError('print_every in config cannot be parsed to int')
+
+        try:
+            self.batch_size = int(self.config.batch_size)
+        except ValueError:
+            raise ValueError('batch_size in config cannot be parsed to int')
+
+        try:
+            self.learning_rate = float(self.config.learning_rate)
+        except ValueError:
+            raise ValueError('learning_rate in config cannot be parsed to float')
+
+        try:
+            self.beta1 = float(self.config.beta1)
+        except ValueError:
+            raise ValueError('beta1 in config cannot be parsed to float')
+
+        try:
+            self.beta2 = float(self.config.beta2)
+        except ValueError:
+            raise ValueError('beta2 in config cannot be parsed to float')
+        
+        try:
+            self.num_layers = int(self.config.num_layers)
+        except ValueError:
+            raise ValueError('num_layers in config cannot be parsed to int')
+
+        try:
+            self.num_G_features = int(self.config.num_G_features)
+        except ValueError:
+            raise ValueError('num_G_features in config cannot be parsed to int')
+
+        try:
+            self.num_D_features = int(self.config.num_D_features)
+        except ValueError:
+            raise ValueError('num_D_features in config cannot be parsed to int')
+
+        try:
+            self.z_size = int(self.config.z_size)
+        except ValueError:
+            raise ValueError('z_size in config cannot be parsed to int')
+
+        try:
+            self.num_epochs = int(self.config.num_epochs)
+        except ValueError:
+            raise ValueError('num_epochs in config cannot be parsed to int')
 
         # Use binary cross entropy loss for training.
         self.criterion = nn.BCELoss()
@@ -75,7 +116,11 @@ class GAN:
         self.fixed_noise = Variable(torch.randn(self.batch_size, self.num_G_features))
 
         self.cuda = torch.cuda.is_available() and self.config.cuda
-        self.ngpu = int(self.config.ngpu)
+
+        try:
+            self.ngpu = int(self.config.ngpu)
+        except ValueError:
+            raise ValueError('ngpu in config cannot be parsed to int')
 
         if self.config.seed < 0 or not self.config.seed:
             self.seed = random.randint(1, 10000)
@@ -126,6 +171,8 @@ class GAN:
         img_grid = torchvision.utils.make_grid(images)
         self.writer.add_image('mnist_image_grid', img_grid)
 
+        # set start and end time to None when initializing the class
+        # this ensures calling the wrong method results in an error
         self.start_time = None
         self.end_time = None
     
@@ -210,7 +257,8 @@ class GAN:
             # Train with fake
             noise = torch.randn(self.batch_size, self.z_size, 1, 1, device=self.device)
             fake = self.G(noise)
-            print(fake.size())
+            print(dir(self.D))
+            print(self.D.state_dict())
             # Fill with fake
             label.fill_(self.fake_label)
             output = self.D(fake.detach())
@@ -288,8 +336,8 @@ class GAN:
         # track train and test loss for graphing
         self.G_train_losses = []
         self.D_train_losses = []
-        self.G_test_losses = []
-        self.D_test_losses = []
+        self.G_test_losses  = []
+        self.D_test_losses  = []
 
         # run the training loop, alternating between train and test
         for epoch in range(self.num_epochs):
@@ -322,15 +370,27 @@ class GAN:
             array_like
                 Tensor of output data.
         '''
+        if self.start_time is None:
+            raise ValueError('start_time cannot be None')
+        if self.end_time is None:
+            raise ValueError('end_time cannot be None')
+
         self.set_test()
-        inference = self.G(x)
-        return inference
+        gen_img = self.G(x)
+        return gen_img
 
     def finish_training(self):
         '''
         Finish training by graphing the network,
         saving G and D and show the results of training.
         '''
+        # ensure training occurred by checking start and end times
+        # class variables are not set to None
+        if self.start_time is None:
+            raise ValueError('start_time cannot be None')
+        if self.end_time is None:
+            raise ValueError('end_time cannot be None')
+
         # all info relevant from training placed in dict
         new_config_info = {
             'training_duration': self.duration,
@@ -369,14 +429,20 @@ class GAN:
 
         # Plot real images
         real_batch = next(iter(self.train_loader))
-        plt.figure(figsize=(15,15))
-        plt.subplot(1,2,1)
+        plt.figure(figsize=(15, 15))
+        plt.subplot(1, 2, 1)
         plt.axis('off')
         plt.title('Real Images')
-        plt.imshow(np.transpose(vutils.make_grid(real_batch[0].to(self.device)[:64], padding=5, normalize=True).cpu(), (1,2,0)))
+        plt.imshow(np.transpose(
+            vutils.make_grid(
+                real_batch[0].to(self.device)[:64],
+                padding=5,
+                normalize=True
+            ).cpu(),(1,2,0))
+        )
 
         # Plot Fake image generated during the last epoch
-        plt.subplot(1,2,2)
+        plt.subplot(1, 2, 2)
         plt.axis('off')
         plt.title('Fake Images')
         plt.imshow(np.transpose(img_list[-1], (1,2,0)))
