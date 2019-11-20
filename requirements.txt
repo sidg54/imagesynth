@@ -1,4 +1,3 @@
-Flask
 IPython
 torch==1.2.0
 torchvision==0.4.0
@@ -9,7 +8,8 @@ seaborn>=0.8.1
 pandas
 python-dotenv
 future
-flask
+Flask
+Flask-Cors
 Redis
 tqdm
 termcolor
