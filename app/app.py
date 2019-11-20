@@ -1,4 +1,6 @@
 r'''
+Main app file to expose flask APIs
+for inference.
 '''
 # third party imports
 import pickle
