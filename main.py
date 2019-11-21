@@ -21,6 +21,7 @@ from models import *
 from utils.config import process_config_file
 from utils.custom_parser import CustomParser
 from models.gan import *
+from models.base_agent import Agent
 
 
 def main():
@@ -51,9 +52,13 @@ def main():
     config_file = getcwd() + '/configs/' + args.config + '.yml'
     config = process_config_file(config_file)
 
+    # ensure visual display is accounted for
     if args.v:
         config['visual'] = True
+    elif not config.visual:
+        config['visual'] = False
 
+    # sanity checks for loading agents from config name
     try:
         model_file = globals()[config.model_name]
     except Exception as e:
@@ -64,6 +69,12 @@ def main():
     except Exception as e:
         print(f'Encountered an error initializing the model object')
         raise e
+
+    # model must be of type Agent
+    if type(model) != Agent:
+        raise ValueError('model must be of type Agent (see models/base_agent.py)')
+
+    # run with high-level error-handling
     try:
         model.run()
     except Exception as e:
