@@ -40,17 +40,39 @@ def main():
         default='None',
         help='Name of the configuration file to use. Written in YAML.'
     )
+    parser.add_argument(
+        '-v',
+        '--visual',
+        action='store_true',
+        help='If passed in, show visual output like training progress graphs.'
+    )
 
     args = parser.parse_args()
     config_file = getcwd() + '/configs/' + args.config + '.yml'
     config = process_config_file(config_file)
 
+    if args.v:
+        config['visual'] = True
+
     try:
         model_file = globals()[config.model_name]
-        model = model_file(config)
-        model.run()
-        model.finalize()
     except Exception as e:
+        print(f'Encountered an error loading the model with the given model name: {config.model_name}')
+        raise e
+    try:
+        model = model_file(config)
+    except Exception as e:
+        print(f'Encountered an error initializing the model object')
+        raise e
+    try:
+        model.run()
+    except Exception as e:
+        print('Error running training for the model')
+        raise e
+    try:
+        model.finish_training()
+    except Exception as e:
+        print('Error finalizing training')
         raise e
 
 

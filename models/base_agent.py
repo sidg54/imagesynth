@@ -102,3 +102,72 @@ class Agent:
         # this ensures calling the wrong method results in an error
         self.start_time = None
         self.end_time = None
+    
+    def checkpoint(self, state, filename='checkpoint.pth'):
+        '''
+        Saves the state dict of the network(s), the optimizers,
+        and various other information to the given filename.
+
+        Arguments
+        ---------
+            filename : str
+                Name of the file to save the state to.
+        '''
+        # sanity check: state must be a dict
+        assert type(state) == dict
+        torch.save(state, self.config.checkpoint_dir + filename)
+    
+    def init_weights(self, net):
+        '''
+        Initializes custom weights for the given network.
+
+        Arguments
+        ---------
+            net : obj
+                Network to initialize weights for.
+        '''
+        raise NotImplementedError
+    
+    def set_train(self):
+        ''' Sets the network(s) to training mode. '''
+        raise NotImplementedError
+    
+    def set_test(self):
+        ''' Sets the network(s) to testing mode. '''
+        raise NotImplementedError
+    
+    def train_one_epoch(self, epoch):
+        ''' Run a single training loop. '''
+        raise NotImplementedError
+    
+    def test_one_epoch(self, epoch):
+        ''' Run a single testing loop. '''
+        raise NotImplementedError
+    
+    def run(self):
+        ''' Run training and testing loops. '''
+        raise NotImplementedError
+    
+    def infer(self, x):
+        '''
+        Runs a single forward pass on the data to produce some novel
+        generative output.
+
+        Arguments
+        ---------
+            x : array_like
+                Input data.
+        
+        Returns
+        -------
+            array_like
+                Tensor of output data.
+        '''
+        raise NotImplementedError
+    
+    def finish_training(self):
+        '''
+        Finish training by graphing the network,
+        and saving the results of training.
+        '''
+        raise NotImplementedError

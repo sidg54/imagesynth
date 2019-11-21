@@ -113,37 +113,7 @@ class GAN(Agent):
         img_grid = torchvision.utils.make_grid(images)
         self.writer.add_image('mnist_image_grid', img_grid)
     
-    def checkpoint(self, filename='checkpoint.pth'):
-        '''
-        Saves the state dict of D, G, the optimizers, and
-        various other information to the given filename.
-
-        Arguments
-        ---------
-            filename : str
-                Name of the file to save the state to.
-        '''
-        state = {
-            'epoch': self.cur_epoch,
-            'iteration': self.cur_iteration,
-            'G_state_dict': self.G.state_dict(),
-            'D_state_dict': self.D.state_dict(),
-            'G_optim': self.G_optim.state_dict(),
-            'D_optim': self.D_optim.state_dict(),
-            'fixed_noise': self.fixed_noise,
-            'manual_seed': self.manual_seed
-        }
-        torch.save(state, self.config.checkpoint_dir + filename)
-    
     def init_weights(self, net):
-        '''
-        Initializes custom weights for the given network.
-
-        Arguments
-        ---------
-            net : obj
-                Network to initialize weights for.
-        '''
         classname = net.__class__.__name__
         if classname.find('Conv') != -1:
             nn.init.normal_(net.weight.data, 0.0, 0.02)
@@ -159,20 +129,17 @@ class GAN(Agent):
         self.fake_label = new_fake
     
     def set_train(self):
-        ''' Sets the networks to training mode. '''
         self.G.train()
         self.D.train()
     
     def set_test(self):
-        ''' Sets the networks to testing mode. '''
         self.G.eval()
         self.D.eval()
     
     def train_one_epoch(self, epoch):
-        ''' Run a single training loop. '''
         # Set G and D to training so gradient updates occur
         self.set_train()
-
+        self.cur_epoch = epoch
         # Training loop
         for batch_idx, (data, target) in enumerate(tqdm(self.train_loader)):
             # send data and target tensors to device
@@ -228,8 +195,20 @@ class GAN(Agent):
                     errG.item() / 1000, epoch * len(self.train_loader) + batch_idx)
                 self.writer.add_scalar('D training loss',
                     errD.item() / 1000, epoch * len(self.train_loader) + batch_idx)
+                
+                # checkpointing
+                state = {
+                    'epoch': self.cur_epoch,
+                    'G_state_dict': self.G.state_dict(),
+                    'D_state_dict': self.D.state_dict(),
+                    'G_optim': self.G_optim.state_dict(),
+                    'D_optim': self.D_optim.state_dict(),
+                    'fixed_noise': self.fixed_noise,
+                    'manual_seed': self.manual_seed
+                }
+                self.checkpoint(state=state)
 
-                # print
+                # print to current training CL
                 print('=================================================================')
                 print(f'[{epoch}/{self.num_epochs}]\n[{batch_idx}/{len(self.train_loader)}]\n \
                     Loss D: {errD.item()}\nLoss G: {errG.item()}\n \
@@ -240,7 +219,7 @@ class GAN(Agent):
             self.hist['G_train_losses'].append(errG.item())
             self.hist['D_train_losses'].append(errD.item())
 
-            if self.cur_iteration % 500 == 0 or ((epoch == num_epochs - 1) and (batch_idx == len(self.train_loader)-1)):
+            if self.cur_iteration % 500 == 0 or ((epoch == self.num_epochs - 1) and (batch_idx == len(self.train_loader)-1)):
                 with torch.no_grad():
                     fake = self.G(self.fixed_noise).detach().cpu()
                 self.img_list.append(vutils.make_grid(fake, padding=2, normalize=True))
@@ -248,12 +227,10 @@ class GAN(Agent):
             self.cur_iteration += 1
 
     def test_one_epoch(self, epoch):
-        ''' Run a single testing loop. '''
         # Set G and D to eval so gradients updates do not occur
         self.set_test()
             
     def run(self):
-        ''' Run training and testing loops. '''
         self.start_time = time.time()
 
         # if using multi-gpu, use DataParallel on G and D
@@ -278,6 +255,7 @@ class GAN(Agent):
 
         # run the training loop, alternating between train and test
         for epoch in range(self.num_epochs):
+            self.cur_epoch = epoch
             # run a single training epoch
             self.train_one_epoch(epoch)
 
@@ -293,20 +271,6 @@ class GAN(Agent):
         self.duration = self.end_time - self.start_time
     
     def infer(self, x):
-        '''
-        Runs a single forward pass on the data to produce
-        some novel generative output.
-
-        Arguments
-        ---------
-            x : array_like
-                Input data.
-        
-        Returns
-        -------
-            array_like
-                Tensor of output data.
-        '''
         if self.start_time is None:
             raise ValueError('start_time cannot be None')
         if self.end_time is None:
@@ -317,10 +281,6 @@ class GAN(Agent):
         return generated_image
 
     def finish_training(self):
-        '''
-        Finish training by graphing the network,
-        saving G and D and show the results of training.
-        '''
         # ensure training occurred by checking start and end times
         # class variables are not set to None
         if self.start_time is None:
@@ -349,40 +309,41 @@ class GAN(Agent):
         log_config_file(config=self.config)
         self.writer.close()
 
-        # Plot training loss for G and D
-        plt.figure(figsize=(10,5))
-        plt.title('Generator and Discriminator Loss During Training')
-        plt.plot(self.hist['G_train_losses'], label='G')
-        plt.plot(self.hist['D_train_losses'], label='D')
-        plt.xlabel('Iterations')
-        plt.ylabel('Loss')
-        plt.legend()
-        plt.show()
+        if self.config.visual:
+            # Plot training loss for G and D
+            plt.figure(figsize=(10,5))
+            plt.title('Generator and Discriminator Loss During Training')
+            plt.plot(self.hist['G_train_losses'], label='G')
+            plt.plot(self.hist['D_train_losses'], label='D')
+            plt.xlabel('Iterations')
+            plt.ylabel('Loss')
+            plt.legend()
+            plt.show()
 
-        # Visualizing the Generator's progress through training.
-        fig = plt.figure(figsize=(8,8))
-        plt.axis('off')
-        ims = [[plt.imshow(np.transpose(i, (1,2,0)), animated=True)] for i in img_list]
-        ani = animation.ArtistAnimation(fig, ims, interval=1000, repeat_delay=1000, blit=True)
-        HTML(ani.to_jshtml())
+            # Visualizing the Generator's progress through training.
+            fig = plt.figure(figsize=(8,8))
+            plt.axis('off')
+            ims = [[plt.imshow(np.transpose(i, (1,2,0)), animated=True)] for i in img_list]
+            ani = animation.ArtistAnimation(fig, ims, interval=1000, repeat_delay=1000, blit=True)
+            HTML(ani.to_jshtml())
 
-        # Plot real images
-        real_batch = next(iter(self.train_loader))
-        plt.figure(figsize=(15, 15))
-        plt.subplot(1, 2, 1)
-        plt.axis('off')
-        plt.title('Real Images')
-        plt.imshow(np.transpose(
-            vutils.make_grid(
-                real_batch[0].to(self.device)[:64],
-                padding=5,
-                normalize=True
-            ).cpu(),(1,2,0))
-        )
+            # Plot real images
+            real_batch = next(iter(self.train_loader))
+            plt.figure(figsize=(15, 15))
+            plt.subplot(1, 2, 1)
+            plt.axis('off')
+            plt.title('Real Images')
+            plt.imshow(np.transpose(
+                vutils.make_grid(
+                    real_batch[0].to(self.device)[:64],
+                    padding=5,
+                    normalize=True
+                ).cpu(),(1,2,0))
+            )
 
-        # Plot Fake image generated during the last epoch
-        plt.subplot(1, 2, 2)
-        plt.axis('off')
-        plt.title('Fake Images')
-        plt.imshow(np.transpose(img_list[-1], (1,2,0)))
-        plt.show()
+            # Plot Fake image generated during the last epoch
+            plt.subplot(1, 2, 2)
+            plt.axis('off')
+            plt.title('Fake Images')
+            plt.imshow(np.transpose(img_list[-1], (1,2,0)))
+            plt.show()

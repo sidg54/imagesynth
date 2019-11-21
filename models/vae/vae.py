@@ -26,6 +26,8 @@ from tqdm import tqdm
 # internal imports
 from ..base_agent import Agent
 from dataloaders.mnist import MNISTDataLoader
+from utils.utils import show_gpu, imshow, plot_classes_preds, images_to_probs
+from utils.config import log_config_file, print_config
 
 
 class VAE(Agent):
@@ -60,35 +62,7 @@ class VAE(Agent):
             betas=(self.beta1, self.beta2)
         )
     
-    def checkpoint(self, filename='checkpoint.pth'):
-        '''
-        Saves the state dicts of the networks, the optimizers,
-        and various other information to the given filename.
-
-        Arguments
-        ---------
-            filename : str
-                Name of the file to save the state to.
-        '''
-        state = {
-            'epoch': self.cur_epoch,
-            'iteration': self.cur_iteration,
-            'encoder_state_dict': self.encoder.state_dict(),
-            'decoder_state_dict': self.decoder.state_dict(),
-            'manual_seed': self.manual_seed,
-        }
-        torch.save(state, self.config.checkpoint_dir + filename)
-    
     def init_weights(self, net):
-        '''
-        Initializes custom weights for the given network.
-
-        Arguments
-        ---------
-            net : obj
-                Network to initialize weights for.
-        '''
-        # TODO: should this be placed into base agent?
         classname = net.__class__.__name__
         if classname.find('Conv') != -1:
             nn.init.normal_(net.weight.data, 0.0, 0.02)
@@ -97,27 +71,22 @@ class VAE(Agent):
             nn.init.constant_(net.bias.data, 0)
     
     def set_train(self):
-        ''' Sets the networks to training mode. '''
         self.encoder.train()
         self.decoder.train()
     
     def set_test(self):
-        ''' Sets the networks to testing mode. '''
         self.encoder.eval()
         self.decoder.eval()
     
     def train_one_epoch(self, epoch):
-        ''' Run a single training loop. '''
         self.set_train()
         # TODO:
     
     def test_one_epoch(self, epoch):
-        ''' Run a single testing loop. '''
         self.set_test()
         # TODO:
     
     def run(self):
-        ''' Run training and testing. '''
         self.start_time = time.time()
 
         # if using multi-gpu, use DataParallel on encoder and decoder
@@ -153,20 +122,6 @@ class VAE(Agent):
         self.duration = self.end_time - self.start_time
     
     def infer(self, x):
-        '''
-        Runs a single forward pass through the networks to produce
-        some novel generative output.
-
-        Arguments
-        ---------
-            x : array_like
-                Input data.
-        
-        Returns
-        -------
-            array_like
-                Tensor of output data.
-        '''
         if self.start_time is None:
             raise ValueError('start_time cannot be None')
         if self.end_time is None:
@@ -177,10 +132,6 @@ class VAE(Agent):
         return generated_image
     
     def finish_training(self):
-        '''
-        Finish training by graphing the network, saving G and D and
-        showing the results of training.
-        '''
         # ensure training occurred by checking start and end times
         # class variables are not set to None
         if self.start_time is None:
