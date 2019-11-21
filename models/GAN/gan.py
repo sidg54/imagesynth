@@ -91,10 +91,10 @@ class GAN(Agent):
         self.fake_label = 0
         self.fixed_noise = Variable(torch.randn(self.batch_size, self.num_G_features))
         
-        G_name = globals()[config.G]
-        D_name = globals()[config.D]
-        self.G = G_name(config).to(self.device)
-        self.D = D_name(config).to(self.device)
+        G_name = globals()[self.config.G]
+        D_name = globals()[self.config.D]
+        self.G = G_name(self.config).to(self.device)
+        self.D = D_name(self.config).to(self.device)
 
         self.G_optim = optim.Adam(
             self.G.parameters(),
@@ -118,8 +118,8 @@ class GAN(Agent):
         Saves the state dict of D, G, the optimizers, and
         various other information to the given filename.
 
-        Parameters
-        ----------
+        Arguments
+        ---------
             filename : str
                 Name of the file to save the state to.
         '''
@@ -137,7 +137,7 @@ class GAN(Agent):
     
     def init_weights(self, net):
         '''
-        Initializes custom weights for G and D.
+        Initializes custom weights for the given network.
 
         Arguments
         ---------
@@ -313,8 +313,8 @@ class GAN(Agent):
             raise ValueError('end_time cannot be None')
 
         self.set_test()
-        gen_img = self.G(x)
-        return gen_img
+        generated_image = self.G(x)
+        return generated_image
 
     def finish_training(self):
         '''
@@ -327,6 +327,8 @@ class GAN(Agent):
             raise ValueError('start_time cannot be None')
         if self.end_time is None:
             raise ValueError('end_time cannot be None')
+        if self.duration is None:
+            raise ValueError('duration cannot be None at the end of training.')
 
         # all info relevant from training placed in dict
         new_config_info = {
@@ -336,7 +338,6 @@ class GAN(Agent):
             'seed_used': self.seed,
             'start_time': self.start_time,
             'end_time': self.end_time,
-            'duration': self.duration,
             'real_label': self.real_label,
             'fake_label': self.fake_label,
             'hist': self.hist
