@@ -20,7 +20,7 @@ from utils.utils import show_gpu
 
 
 class Agent:
-    ''' Class defining a base agent. '''
+    ''' Class defining a base agent (abstract class). '''
 
     def __init__(self, config):
         '''
