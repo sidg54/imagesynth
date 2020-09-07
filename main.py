@@ -41,21 +41,14 @@ def main():
         default='None',
         help='Name of the configuration file to use. Written in YAML.'
     )
-    parser.add_argument(
-        '-v',
-        '--visual',
-        action='store_true',
-        help='If passed in, show visual output like training progress graphs.'
-    )
 
+    # get config file specified in CL
     args = parser.parse_args()
     config_file = getcwd() + '/configs/' + args.config + '.yml'
     config = process_config_file(config_file)
 
     # ensure visual display is accounted for
-    if args.v:
-        config['visual'] = True
-    elif not config.visual:
+    if 'visual' not in config:
         config['visual'] = False
 
     # sanity checks for loading agents from config name

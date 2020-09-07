@@ -16,3 +16,4 @@ termcolor
 easydict
 pyyaml
 requests
+gpustat
